@@ -39,7 +39,6 @@ def run(config_file: str):
     mol_writer(ligand_with_Hs, ligand_out)
     mol_writer(protein_with_Hs_renamed, protein_out, ionization_records, receptor=True)
 
-    # TODO: create log writer using ionization data
     log_writer(config.data, pilah_version, ionization_records)
 
     if "ligand_image" in config.data.keys():

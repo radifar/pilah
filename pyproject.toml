@@ -16,10 +16,14 @@ meeko = "^0.5.0"
 
 [tool.poetry.dev-dependencies]
 
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^5.0.0"
+
 [tool.poetry-dynamic-versioning]
 enable = true
 vcs = "git"
 style = "semver"
+pattern  = "^(?P<base>\\d+\\.\\d+\\.\\d+)(-?((?P<stage>[a-zA-Z]+)\\.?(?P<revision>\\d+)?))?"
 
 [tool.poetry.scripts]
 pilah = "pilah.pilah:app"
