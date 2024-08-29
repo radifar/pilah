@@ -1,0 +1,2 @@
+[run]
+omit = src/pilah/dimorphite_dl/*, src/pilah/pKAI/*, *__init__.py
