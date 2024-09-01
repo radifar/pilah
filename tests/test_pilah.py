@@ -1,4 +1,3 @@
-import os
 from unittest.mock import Mock, patch
 
 from typer.testing import CliRunner
