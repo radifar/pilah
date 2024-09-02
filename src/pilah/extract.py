@@ -60,7 +60,7 @@ def extract(data):
 
     # Suppress warning from Biopython
     # https://www.biostars.org/p/251583/
-    with warnings.catch_warnings():
+    with warnings.catch_warnings(): # pragma: no cover
         warnings.simplefilter('ignore', BiopythonWarning)
         structure = parser.get_structure('structure', input_file)[0]
 
