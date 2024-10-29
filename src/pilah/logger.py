@@ -1,6 +1,6 @@
 from datetime import datetime
 
-def log_writer(config_data, pilah_version, ionization_records):
+def log_writer(config_data, pilah_version, ionization_records): # pragma: no cover
     now = datetime.now().strftime('%Y%m%d_%H%M%S')
     log_txt = f"PiLAH version: {pilah_version}\n\n"
     log_txt += "----- PiLAH Configuration -----\n\n"

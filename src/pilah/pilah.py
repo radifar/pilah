@@ -31,6 +31,11 @@ def run(config_file: str):
     protein_with_Hs, ionization_records = protein_protonation_results
     protein_with_Hs_renumbered = renumber_hydrogens(protein_with_Hs)
     protein_with_Hs_renamed = rename_hydrogens(protein_with_Hs_renumbered)
+    # TODO: add missing atom check, if some atoms missing and the output format is pdbqt
+    #       then tell that unfortunately the Meeko library unable to parameterize
+    #       the residue if some atoms are missing. Give the alternative: either delete
+    #       the residue with text editor or use other program to predict the missing atoms
+    #       location, then exit the programs.
 
     ligand_id = config.data["ligand_id"]
     ligand_out = config.data.get("ligand_out", f"{ligand_id}_out.pdb")
@@ -58,5 +63,5 @@ def run(config_file: str):
 def callback():
     pass
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     app()

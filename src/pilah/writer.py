@@ -11,7 +11,7 @@ from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
 
 
-def check(success, error_msg):
+def check(success, error_msg): # pragma: no cover
     if not success:
         print("Error: " + error_msg, file=sys.stderr)
         sys.exit(2)
@@ -66,6 +66,9 @@ def rename_hydrogens(mol):
                     if name.strip() == "N":
                         h_name_1 = "H"
                         h_name_2 = "H"
+                    elif name.strip() == "NZ":
+                        h_name_1 = "H" + suffix + "2"
+                        h_name_2 = "H" + suffix + "3"
                     else:
                         h_name_1 = "H" + suffix + "1"
                         h_name_2 = "H" + suffix + "2"
@@ -91,9 +94,6 @@ def rename_hydrogens(mol):
                 hydrogens[2].GetMonomerInfo().SetName(h_name_3)
 
     return mol
-
-def rename_pdbqt_residue(mol):
-    pass
 
 def mol_writer(mol, filename, ionization_records=None, receptor=False):
     mol_format = filename.split(".")[-1]
@@ -128,28 +128,37 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
                     residue_number = int(line[22:26].strip())
                     residue_name = line[17:20].strip()
                     residue_id = (chain_id, residue_number, residue_name)
-                    if residue_name == "HIS":
+                    if residue_name == "LYS":
+                        ionization_data = ionization_records[residue_id]
+                        lys_charge = ionization_data[2]
+                        if lys_charge == "Neutral":
+                            line = line.replace("LYS", "LYN")
+                    elif residue_name == "HIS":
                         ionization_data = ionization_records[residue_id]
                         his_charge = ionization_data[2]
                         if his_charge == "Neutral":
                             line = line.replace("HIS", "HIE")
                         elif his_charge == "Positive":
                             line = line.replace("HIS", "HIP")
-                        line += "\n"
-                        pdb_block_renamed_residue += line
-                        continue
                     elif residue_name == "CYS":
-                        ionization_data = ionization_records.get(residue_id, [0.0, {}, "SS_bridge"])
+                        ionization_data = ionization_records[residue_id]
                         cys_charge = ionization_data[2]
                         if cys_charge == "Negative":
                             line = line.replace("CYS", "CYM")
                         elif cys_charge == "SS_bridge":
                             line = line.replace("CYS", "CYX")
-                        line += "\n"
-                        pdb_block_renamed_residue += line
-                    else:
-                        line += "\n"
-                        pdb_block_renamed_residue += line
+                    elif residue_name == "ASP":
+                        ionization_data = ionization_records[residue_id]
+                        asp_charge = ionization_data[2]
+                        if asp_charge == "Neutral":
+                            line = line.replace("ASP", "ASH")
+                    elif residue_name == "GLU":
+                        ionization_data = ionization_records[residue_id]
+                        glu_charge = ionization_data[2]
+                        if glu_charge == "Neutral":
+                            line = line.replace("GLU", "GLH")
+                    line += "\n"
+                    pdb_block_renamed_residue += line
 
                 binary_pdb_block = pdb_block_renamed_residue.encode("ascii")
                 temp_pdb_file.write(binary_pdb_block)
@@ -166,7 +175,7 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
             if is_ok:
                 with open(filename,'w') as w:
                     w.write(pdbqt_string["rigid"])
-            else:
+            else: # pragma: no cover 
                 print(error_msg)
         else:
             preparator = MoleculePreparation()
@@ -176,7 +185,7 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
                 if is_ok:
                     with open(filename,'w') as w:
                         w.write(pdbqt_string)
-                else:
+                else: # pragma: no cover 
                     print(error_msg)
     else:
         print(f"Unrecognized file format: {mol_format}")
