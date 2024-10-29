@@ -3,10 +3,8 @@ from unittest.mock import Mock
 import pytest
 from rdkit import Chem
 
-from data import ionization_data, pkai_data
 
-
-pytest.register_assert_rewrite("utils.helpers")
+pytest.register_assert_rewrite("helpers")
 
 @pytest.fixture
 def mock_config_default():
@@ -70,22 +68,52 @@ def mock_config_unknown_format():
 
 @pytest.fixture
 def pdb_block_1j3f():
-    with open('tests/data/1j3f.pdb') as f:
+    with open("tests/data/1j3f.pdb") as f:
         return f.read()
 
 @pytest.fixture
 def pdb_block_1xmk():
-    with open('tests/data/1xmk.pdb') as f:
+    with open("tests/data/1xmk.pdb") as f:
         return f.read()
 
 @pytest.fixture
 def pdb_block_2xji():
-    with open('tests/data/2xji.pdb') as f:
+    with open("tests/data/2xji.pdb") as f:
         return f.read()
 
 @pytest.fixture
 def pdb_block_3ucy():
-    with open('tests/data/3ucy.pdb') as f:
+    with open("tests/data/3ucy.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_protein_1e66():
+    with open("tests/data/protein_1e66.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_protein_5nzn():
+    with open("tests/data/protein_5nzn.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_protein_6hsh():
+    with open("tests/data/protein_6hsh.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_ligand_HUX():
+    with open("tests/data/ligand_HUX_1e66.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_ligand_G39():
+    with open("tests/data/ligand_G39_5nzn.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_ligand_GOK():
+    with open("tests/data/ligand_GOK_6hsh.pdb") as f:
         return f.read()
 
 @pytest.fixture

@@ -77,14 +77,27 @@ i_records_charge["1xmk"] = {
 }
 
 i_records_charge["2xji"] = {
-    ('A', 4, 'CYS'): {'pH7.4': "Neutral",
-                      'pH3': "Neutral",
-                      'pH11': "Negative",
-                      'pH3pT2': "Neutral",
-                      'pH11pT2': "Neutral"},
+    ('A', 4, 'CYS'): {'pH7.4': "SS_bridge",
+                      'pH3': "SS_bridge",
+                      'pH11': "SS_bridge",
+                      'pH3pT2': "SS_bridge",
+                      'pH11pT2': "SS_bridge"},
     ('A', 5, 'TYR'): {'pH7.4': "Neutral",
                       'pH3': "Neutral",
                       'pH11': "Negative",
+                      'pH3pT2': "Neutral",
+                      'pH11pT2': "Neutral"}
+}
+
+i_records_charge["2xji_pdbqt"] = {
+    ('A', 4, 'CYS'): {'pH7.4': "SS_bridge",
+                      'pH3': "SS_bridge",
+                      'pH11': "SS_bridge",
+                      'pH3pT2': "SS_bridge",
+                      'pH11pT2': "SS_bridge"},
+    ('A', 5, 'TYR'): {'pH7.4': "Neutral",
+                      'pH3': "Neutral",
+                      'pH11': "Neutral",
                       'pH3pT2': "Neutral",
                       'pH11pT2': "Neutral"}
 }

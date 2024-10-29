@@ -1,8 +1,6 @@
 from rdkit import Chem
 import pytest
 
-from pilah.dimorphite_dl import dimorphite_dl
-from pilah.extract import extract
 from pilah.protonate import (
     process_ligand,
     get_atoms_from_pattern,
@@ -12,7 +10,7 @@ from pilah.protonate import (
 )
 
 from data import added_records, ionization_data, pkai_data
-from utils.helpers import assert_protonated_mol
+from helpers import assert_protonated_mol
 
 config = dict(
         input = "tests/data/6hsh.pdb",
@@ -65,10 +63,10 @@ def test_get_atoms_from_pattern(ionizable_peptide):
 @pytest.mark.parametrize(
         "rdkit_mol, non_organic_num",
         [
-            ("cr_apo_mbs", 1), # 1 CR
-            ("zb_ADAR1", 3), # 2 CD 1 NI
+            ("cr_apo_mbs", 1),    # 1 CR
+            ("zb_ADAR1", 3),      # 2 CD 1 NI
             ("methanobactin", 6), # 6 CU
-            ("calmodulin", 5) # 1 NA 1 MG 2 ZN 1 AS
+            ("calmodulin", 5)     # 1 NA 1 MG 2 ZN 1 AS
         ]
 )
 def test_get_atoms_from_pattern_non_organic(rdkit_mol, non_organic_num, request):
@@ -180,24 +178,28 @@ def test_AA_modifier_get_protonated_mol(pH, pT, ionizable_AA, pdb_id, request):
     
     assert_protonated_mol(protonated_mol, whole_i_records, i_records_ids)
 
-with open("tests/data/ligand_HUX_1e66.pdb") as f:
-    pdb_block_HUX = f.read()
-with open("tests/data/ligand_G39_5nzn.pdb") as f:
-    pdb_block_G39 = f.read()
-with open("tests/data/ligand_GOK_6hsh.pdb") as f:
-    pdb_block_GOK = f.read()
+def test_AA_modifier_get_protonated_mol_pdbqt(ionizable_AA_2xji):
+    i_records_ids = ionization_data.i_records_charge["2xji_pdbqt"].keys()
+    ionizable_AA_2xji.no_tyr_ionization = True
+    ionizable_AA_2xji.ionize_aa(11.0, 1.0)
+
+    whole_i_records = ionizable_AA_2xji.ionization_records
+    protonated_mol = ionizable_AA_2xji.get_protonated_mol()
+    
+    assert_protonated_mol(protonated_mol, whole_i_records, i_records_ids)
 
 @pytest.mark.parametrize(
         "ligand_pdb_block, num_atoms",
         [
-            (pdb_block_HUX, 21),
-            (pdb_block_G39, 20),
-            (pdb_block_GOK, 29),
+            ("pdb_block_ligand_HUX", 21),
+            ("pdb_block_ligand_G39", 20),
+            ("pdb_block_ligand_GOK", 29),
         ]
 )
-def test_process_ligand_no_smiles(ligand_pdb_block, num_atoms):
+def test_process_ligand_no_smiles(ligand_pdb_block, num_atoms, request):
     data = {}
     
+    ligand_pdb_block = request.getfixturevalue(ligand_pdb_block)
     ligand, ligand_Hs = process_ligand(data, ligand_pdb_block)
 
     assert ligand.GetNumAtoms() == num_atoms
@@ -212,42 +214,37 @@ def test_process_ligand_no_smiles(ligand_pdb_block, num_atoms):
         # python dimorphite_dl.py --smiles "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
         # python dimorphite_dl.py --smiles "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
         [
-            (pdb_block_HUX,
+            ("pdb_block_ligand_HUX",
              "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n3)Cl)N)[C@@H](C2)C1",
              "CCC1=C[C@@H]2Cc3nc4cc(Cl)ccc4c(N)c3[C@H](C1)C2"),
-            (pdb_block_G39,
+            ("pdb_block_ligand_G39",
              "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O",
              "CCC(CC)O[C@@H]1C=C(C(=O)[O-])C[C@H]([NH3+])[C@H]1NC(C)=O"),
-            (pdb_block_GOK,
+            ("pdb_block_ligand_GOK",
              "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO",
              "Cn1cc(C[NH2+]CC2CCN(c3ncc(C(=O)NO)cn3)CC2)c2ccccc21"),
         ]
 )
-def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles):
+def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles, request):
     data = {"ligand_smiles": smiles}
+    ligand_pdb_block = request.getfixturevalue(ligand_pdb_block)
 
     ligand, ligand_Hs = process_ligand(data, ligand_pdb_block)
 
     assert ligand_Hs.GetNumAtoms() > ligand_Hs.GetNumHeavyAtoms()
     assert Chem.MolToSmiles(ligand) == dimorphite_smiles
 
-with open("tests/data/protein_1e66.pdb") as f:
-    pdb_block_1e66 = f.read()
-with open("tests/data/protein_5nzn.pdb") as f:
-    pdb_block_5nzn = f.read()
-with open("tests/data/protein_6hsh.pdb") as f:
-    pdb_block_6hsh = f.read()
-
 @pytest.mark.parametrize(
         "protein_pdb_block",
         [
-            (pdb_block_1e66),
-            (pdb_block_5nzn),
-            (pdb_block_6hsh),
+            ("pdb_block_protein_1e66"),
+            ("pdb_block_protein_5nzn"),
+            ("pdb_block_protein_6hsh"),
         ]
 )
-def test_process_protein(protein_pdb_block):
-    data = {}
+def test_process_protein(protein_pdb_block, request):
+    data = {"protein_out": "protein.mol2"}
+    protein_pdb_block = request.getfixturevalue(protein_pdb_block)
 
     ionized_mol, whole_i_records = process_protein(data, protein_pdb_block)
     ids = whole_i_records.keys()
