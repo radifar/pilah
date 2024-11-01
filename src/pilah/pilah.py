@@ -20,10 +20,12 @@ def run(config_file: str):
     config = Config()
     config.load(config_file)
     
-    complex_pdb_block = extract(config.data)
+    extraction_data = extract(config.data)
     
-    ligand_pdb_block = complex_pdb_block["ligand"]
-    protein_pdb_block = complex_pdb_block["protein"]
+    ligand_pdb_block = extraction_data["ligand"]
+    protein_pdb_block = extraction_data["protein"]
+    res_w_missing_atoms = extraction_data["res_w_missing_atoms"]
+    res_w_incorrect_bond_length_angle = extraction_data["res_w_incorrect_bond_length_angle"]
     ligand_mol, ligand_with_Hs = process_ligand(config.data, ligand_pdb_block)
 
     
@@ -31,11 +33,6 @@ def run(config_file: str):
     protein_with_Hs, ionization_records = protein_protonation_results
     protein_with_Hs_renumbered = renumber_hydrogens(protein_with_Hs)
     protein_with_Hs_renamed = rename_hydrogens(protein_with_Hs_renumbered)
-    # TODO: add missing atom check, if some atoms missing and the output format is pdbqt
-    #       then tell that unfortunately the Meeko library unable to parameterize
-    #       the residue if some atoms are missing. Give the alternative: either delete
-    #       the residue with text editor or use other program to predict the missing atoms
-    #       location, then exit the programs.
 
     ligand_id = config.data["ligand_id"]
     ligand_out = config.data.get("ligand_out", f"{ligand_id}_out.pdb")
@@ -44,7 +41,11 @@ def run(config_file: str):
     mol_writer(ligand_with_Hs, ligand_out)
     mol_writer(protein_with_Hs_renamed, protein_out, ionization_records, receptor=True)
 
-    log_writer(config.data, pilah_version, ionization_records)
+    log_writer(config.data,
+               pilah_version,
+               ionization_records,
+               res_w_missing_atoms,
+               res_w_incorrect_bond_length_angle)
 
     if "ligand_image" in config.data.keys():
         ligand_image = config.data["ligand_image"]
