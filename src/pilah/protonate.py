@@ -133,6 +133,22 @@ class AA_modifier():
                         self.ionization_records[residue_id] = [14.0, set(atom_ids), "Positive"]
                     elif residue_name.strip() in self.positive:
                         self.ionization_records[residue_id] = [14.0, set(atom_ids), "Positive"]
+            
+            # terminal carboxylate always deprotonated to match Meeko template
+            if moiety == "carboxylate":
+                atom_loop_break = False
+                for atom_ids in filtered_atoms:
+                    for atom_id in atom_ids:
+                        atom = self.mol.GetAtomWithIdx(atom_id)
+                        atom_name = atom.GetMonomerInfo().GetName()
+                        if atom_name.strip() == "OXT":
+                            atom.SetNumExplicitHs(0)
+                            atom.SetFormalCharge(-1)
+                            
+                            atom_loop_break = True
+                            break
+                    if atom_loop_break:
+                        break
     
     def ionize_aa(self, pH, ptreshold) -> None:
         for residue_id, ionization_data in self.ionization_records.items():
