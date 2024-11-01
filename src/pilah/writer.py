@@ -42,6 +42,7 @@ def rename_hydrogens(mol):
         if atom_symbol != "H":
             hydrogens = []
             name = atom.GetMonomerInfo().GetName()
+            residue_name = atom.GetPDBResidueInfo().GetResidueName()
             suffix = name.strip()[1:]
             suffix_len = len(suffix)
             neighbors = atom.GetNeighbors()
@@ -52,6 +53,11 @@ def rename_hydrogens(mol):
                 # Treat hydrogen attached to C carboxyl whose neighbouring residue is missing
                 # as hydrogen attached to C alpha (HA)
                 if name.strip() == "C":
+                    if residue_name == "GLY":
+                        h_name_1 = "HA2"
+                    else:
+                        h_name_1 = "HA"
+                elif name.strip() == "N" and residue_name == "PRO":
                     h_name_1 = "HA"
                 else:
                     h_name_1 = "H" + suffix
@@ -118,6 +124,7 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
         if receptor:
             with NamedTemporaryFile() as temp_pdb_file:
                 pdb_block = Chem.MolToPDBBlock(mol)
+                Chem.MolToPDBFile(mol, "check.pdb")
                 pdb_block_renamed_residue = ""
                 for line in pdb_block.splitlines():
                     if ("ATOM" not in line) and ("HETATM" not in line):

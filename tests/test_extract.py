@@ -1,5 +1,4 @@
 from tempfile import NamedTemporaryFile
-from unittest.mock import patch
 import warnings
 
 from Bio import BiopythonWarning
