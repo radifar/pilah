@@ -1,4 +1,5 @@
 from rdkit.Chem import AllChem as Chem
+from rich.console import Console
 
 from pilah.dimorphite_dl import dimorphite_dl
 from pilah.pKAI import pKAI
@@ -26,7 +27,15 @@ def process_ligand(data: dict, ligand_block: str):
     dimorphite_results = dimorphite_dl.Protonate(dimorphite_args)
     protonated_smiles = next(dimorphite_results).strip()
     template_mol = Chem.MolFromSmiles(protonated_smiles)
-    corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
+    try:
+        corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
+    except ValueError:
+        console = Console()
+        console.print("[bold deep_pink2]\n     Ligand bond assignment failed, trying to force remove[/bold deep_pink2]")
+        console.print("[bold deep_pink2]     hydrogens from the template before bond assignment.[/bold deep_pink2]")
+        console.print("[bold deep_pink2]     Notice that it might cause incorrect stereochemistry.[/bold deep_pink2]")
+        template_mol = Chem.RemoveAllHs(template_mol)
+        corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
     corrected_ligand_with_Hs = Chem.AddHs(corrected_ligand,
                                           addCoords=True,
                                           addResidueInfo=True)
