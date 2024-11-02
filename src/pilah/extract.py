@@ -12,6 +12,8 @@ from rich.console import Console
 from pilah.atom_names import atom_names_dict
 
 
+console = Console()
+
 # Metal list retrieved from
 # Lin, Geng-Yu, et al. "MESPEUS: a database of metal coordination groups
 # in proteins." Nucleic Acids Research 52.D1 (2024): D483-D493.
@@ -115,8 +117,6 @@ class LigandSelect(Select):
         return residue.get_resname() == self.res_name
 
 def display_removed_residues(residue_filter):
-    console = Console()
-
     if residue_filter.res_w_missing_atoms:
         console.print("[bold deep_pink2]\n     Some residues with missing atoms were removed:[/bold deep_pink2]")
         console.print("[red3]     residue_name residue_number[/red3]")
@@ -168,6 +168,35 @@ def get_healthy_residues(pre_pdb_block):
 
     return healthy_residue_dict
 
+def fix_insertion(structure, chain, ligand_id):
+    renumber_residue_map = dict()
+    total_insertion = 0
+    residue_list = []
+    for residue in structure[chain].get_list():
+        structure[chain].detach_child(residue.id)
+        hetero, residue_number, ins_code = residue.id
+        residue_name = residue.get_resname()
+        old_id = (residue_name, residue_number, ins_code)
+
+        is_metal = residue_name in metal_list
+        is_ligand = residue_name == ligand_id
+        if hetero == " " or is_metal:
+            if ins_code != " ":
+                total_insertion += 1
+            residue_number += total_insertion
+            residue.id = (" ", residue_number, " ")
+            residue_list.append(residue)
+            renumber_residue_map[old_id] = residue_number
+        elif is_ligand:
+            residue_number += total_insertion
+            residue.id = (hetero, residue_number, " ")
+            residue_list.append(residue)
+            renumber_residue_map[old_id] = residue_number
+    for residue in residue_list:
+        structure[chain].add(residue)
+    
+    return total_insertion, renumber_residue_map
+
 def extract(data):
     ligand_id = data["ligand_id"]
     chain = data.get("chain", "A")
@@ -187,6 +216,12 @@ def extract(data):
     with warnings.catch_warnings(): # pragma: no cover
         warnings.simplefilter('ignore', BiopythonWarning)
         structure = parser.get_structure('structure', input_file)[0]
+
+    total_insertion, renumber_residue_map = fix_insertion(structure, chain, ligand_id)
+    if total_insertion > 0:
+        console.print("[bold deep_pink1]\n     Insertion code detected, residue number on residues with insertion code[/bold deep_pink1]")
+        console.print("[bold deep_pink1]     and the residues following those residues will be renumbered.[/bold deep_pink1]")
+        console.print("[bold deep_pink1]     The mapping between original residue number and the new one will be logged into the Log file[/bold deep_pink1]")
 
     pdbio = PDBIO()
     pdbio.set_structure(structure)
@@ -217,7 +252,9 @@ def extract(data):
         "protein": protein_handle.read(),
         "ligand": ligand_handle.read(),
         "res_w_missing_atoms": residue_filter.res_w_missing_atoms,
-        "res_w_incorrect_bond_length_angle": residue_filter.res_w_incorrect_bond_length_angle
+        "res_w_incorrect_bond_length_angle": residue_filter.res_w_incorrect_bond_length_angle,
+        "total_insertion": total_insertion,
+        "renumber_residue_map": renumber_residue_map
         }
     pre_protein_handle.close()
     protein_handle.close()

@@ -4,7 +4,9 @@ def log_writer(config_data,
                pilah_version,
                ionization_records,
                res_w_missing_atoms,
-               res_w_incorrect_bond_length_angle): # pragma: no cover
+               res_w_incorrect_bond_length_angle,
+               total_insertion,
+               renumber_residue_map): # pragma: no cover
     now = datetime.now().strftime('%Y%m%d_%H%M%S')
     log_txt = f"PiLAH version: {pilah_version}\n\n"
     log_txt += "----- PiLAH Configuration -----\n\n"
@@ -34,6 +36,13 @@ def log_writer(config_data,
             log_txt += "\nresidue_name residue_number"
             for residue_name, residue_number in res_w_incorrect_bond_length_angle:
                 log_txt += f"\n    {residue_name}          {residue_number}"
+        
+        if total_insertion > 0:
+            log_txt += "\n\n\n----- Renumbered Residues -----"
+            log_txt += f"\n\nTotal residue with insertion code = {total_insertion}"
+            log_txt += "\n\nThe mapping is formatted as follows:\nresidue_name residue_number insertion_code => residue_name new_residue_number\n"
+            for old_id, new_resnum in renumber_residue_map.items():
+                log_txt += f"\n    {old_id[0]} {old_id[1]:4} {old_id[2]} => {old_id[0]} {new_resnum:4}"
 
         log_handle.write(log_txt)
     
