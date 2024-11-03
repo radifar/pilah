@@ -5,6 +5,7 @@ def log_writer(config_data, extraction_data, ionization_records, pilah_version):
     res_w_incorrect_bond_length_angle = extraction_data["res_w_incorrect_bond_length_angle"]
     total_insertion = extraction_data["total_insertion"]
     renumber_residue_map = extraction_data["renumber_residue_map"]
+    multiple_ligand = extraction_data.get("multiple_ligand", "")
     
     now = datetime.now().strftime('%Y%m%d_%H%M%S')
     log_txt = f"PiLAH version: {pilah_version}\n\n"
@@ -13,6 +14,12 @@ def log_writer(config_data, extraction_data, ionization_records, pilah_version):
     with open(logfile_name, "w") as log_handle:
         for key, value in config_data.items():
             log_txt += f"{key:16}: {value}\n"
+        
+        if multiple_ligand:
+            ligand_chain, ligand_id, ligand_res_num = multiple_ligand
+            log_txt += "\n\n----- Multiple Ligand Detected -----"
+            log_txt += f"\n\nThe residue number of ligand with id {ligand_id} in chain {ligand_chain}:\n{ligand_res_num}"
+            log_txt += "\n\nBy default it will choose the ligand with the smallest residue number."
         
         log_txt += "\n\n----- Ionization Records -----\n"
         log_txt += "\nChain   Residue Number   Residue Name     pKa  Charge\n"
