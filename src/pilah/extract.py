@@ -1,3 +1,4 @@
+from copy import deepcopy
 import io
 import sys
 import warnings
@@ -64,7 +65,7 @@ class PreResidueSelect(Select):
             return False
 
 class ResidueSelect(Select):
-    def __init__(self, chain="A", include_metal="no", out_format="", healthy_residue_dict=dict()):
+    def __init__(self, chain, include_metal="no", out_format="", healthy_residue_dict=dict()):
         self.chain_select = chain
         self.include_metal = include_metal
         self.out_format = out_format
@@ -106,7 +107,7 @@ class ResidueSelect(Select):
             return False
 
 class LigandSelect(Select):
-    def __init__(self, res_name, chain="A"):
+    def __init__(self, res_name, chain):
         self.res_name = res_name
         self.chain_select = chain
 
@@ -199,7 +200,8 @@ def fix_insertion(structure, chain, ligand_id):
 
 def extract(data):
     ligand_id = data["ligand_id"]
-    chain = data.get("chain", "A")
+    protein_chain = data["protein_chain"]
+    ligand_chain = data["ligand_chain"]
     include_metal = data.get("include_metal", "no")
 
     input_file = data["input"]
@@ -216,8 +218,11 @@ def extract(data):
     with warnings.catch_warnings(): # pragma: no cover
         warnings.simplefilter('ignore', BiopythonWarning)
         structure = parser.get_structure('structure', input_file)[0]
+    
+    if protein_chain != ligand_chain:
+        structure_copy = deepcopy(structure)
 
-    total_insertion, renumber_residue_map = fix_insertion(structure, chain, ligand_id)
+    total_insertion, renumber_residue_map = fix_insertion(structure, protein_chain, ligand_id)
     if total_insertion > 0:
         console.print("[bold deep_pink1]\n     Insertion code detected, residue number on residues with insertion code[/bold deep_pink1]")
         console.print("[bold deep_pink1]     and the residues following those residues will be renumbered.[/bold deep_pink1]")
@@ -230,17 +235,22 @@ def extract(data):
     protein_handle = io.StringIO()
     ligand_handle = io.StringIO()
 
-    pre_residue_filter = PreResidueSelect(chain, include_metal)
+    pre_residue_filter = PreResidueSelect(protein_chain, include_metal)
     pdbio.save(pre_protein_handle, pre_residue_filter)
     pre_protein_handle.seek(0)
     pre_pdb_block = pre_protein_handle.read()
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
     out_format = data["protein_out"].split(".")[-1]
-    residue_filter = ResidueSelect(chain, include_metal, out_format, healthy_residue_dict)
+    residue_filter = ResidueSelect(protein_chain, include_metal, out_format, healthy_residue_dict)
 
     pdbio.save(protein_handle, residue_filter)
-    pdbio.save(ligand_handle, LigandSelect(ligand_id, chain=chain))
+    if protein_chain == ligand_chain:
+        pdbio.save(ligand_handle, LigandSelect(ligand_id, ligand_chain))
+    else:
+        ligand_pdbio = PDBIO()
+        ligand_pdbio.set_structure(structure_copy)
+        ligand_pdbio.save(ligand_handle, LigandSelect(ligand_id, ligand_chain))
 
     if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
         display_removed_residues(residue_filter)

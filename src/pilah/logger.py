@@ -1,12 +1,11 @@
 from datetime import datetime
 
-def log_writer(config_data,
-               pilah_version,
-               ionization_records,
-               res_w_missing_atoms,
-               res_w_incorrect_bond_length_angle,
-               total_insertion,
-               renumber_residue_map): # pragma: no cover
+def log_writer(config_data, extraction_data, ionization_records, pilah_version): # pragma: no cover
+    res_w_missing_atoms = extraction_data["res_w_missing_atoms"]
+    res_w_incorrect_bond_length_angle = extraction_data["res_w_incorrect_bond_length_angle"]
+    total_insertion = extraction_data["total_insertion"]
+    renumber_residue_map = extraction_data["renumber_residue_map"]
+    
     now = datetime.now().strftime('%Y%m%d_%H%M%S')
     log_txt = f"PiLAH version: {pilah_version}\n\n"
     log_txt += "----- PiLAH Configuration -----\n\n"
