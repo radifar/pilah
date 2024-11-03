@@ -13,12 +13,11 @@ def process_ligand(data: dict, ligand_block: str):
     It will return ligand in protonated and unprotonated form (for image generation)
     """
     ligand_mol = Chem.MolFromPDBBlock(ligand_block)
-    ligand_smiles = Chem.MolToSmiles(ligand_mol)
-    true_smiles = data.get("ligand_smiles", ligand_smiles)
+    ligand_smiles = data["ligand_smiles"]
     pH = float(data.get("ph", 7.4))
 
     dimorphite_args = {
-        "smiles": true_smiles,
+        "smiles": ligand_smiles,
         "min_ph": pH,
         "max_ph": pH,
         "pka_precision": 0

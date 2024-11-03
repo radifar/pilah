@@ -1,20 +1,24 @@
 from configparser import ConfigParser
+import sys
 
 from rich import print
 
 
-options = [
-    # mandatory
+mandatory_opts = [
     "input",
     "ligand_id",
     "protein_out",
     "ligand_out",
-    # optional
+    "protein_chain",
+    "ligand_chain",
+    "ligand_smiles",
+]
+
+optional_opts = [
+    "ligand_seq_num",
     "ligand_image",
     "image_size",
     "include_metal",
-    "chain",
-    "ligand_smiles",
     "pkai_model",
     "ph",
     "ptreshold"
@@ -32,7 +36,14 @@ class Config(ConfigParser):
         self.read_string("[pxpc]\n" + text)
         self.data = dict(self["pxpc"])
 
-        for key in self.data.keys():
+        data_keys = self.data.keys()
+        for key in data_keys:
+            options = mandatory_opts + optional_opts
             if key not in options:
                 print(f"Warning: '{key}' option is not recognized")
+        
+        for option in mandatory_opts:
+            if option not in data_keys:
+                sys.exit(f"Missing mandatory option: {option}")
+
         

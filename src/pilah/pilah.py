@@ -24,12 +24,7 @@ def run(config_file: str):
     
     ligand_pdb_block = extraction_data["ligand"]
     protein_pdb_block = extraction_data["protein"]
-    res_w_missing_atoms = extraction_data["res_w_missing_atoms"]
-    res_w_incorrect_bond_length_angle = extraction_data["res_w_incorrect_bond_length_angle"]
-    total_insertion = extraction_data["total_insertion"]
-    renumber_residue_map = extraction_data["renumber_residue_map"]
     ligand_mol, ligand_with_Hs = process_ligand(config.data, ligand_pdb_block)
-
     
     protein_protonation_results = process_protein(config.data, protein_pdb_block)
     protein_with_Hs, ionization_records = protein_protonation_results
@@ -43,13 +38,7 @@ def run(config_file: str):
     mol_writer(ligand_with_Hs, ligand_out)
     mol_writer(protein_with_Hs_renamed, protein_out, ionization_records, receptor=True)
 
-    log_writer(config.data,
-               pilah_version,
-               ionization_records,
-               res_w_missing_atoms,
-               res_w_incorrect_bond_length_angle,
-               total_insertion,
-               renumber_residue_map)
+    log_writer(config.data, extraction_data, ionization_records, pilah_version)
 
     if "ligand_image" in config.data.keys():
         ligand_image = config.data["ligand_image"]
