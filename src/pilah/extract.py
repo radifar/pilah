@@ -110,12 +110,24 @@ class LigandSelect(Select):
     def __init__(self, res_name, chain):
         self.res_name = res_name
         self.chain_select = chain
+        self.ligand_res_num = []
 
     def accept_chain(self, chain):
         return chain.id == self.chain_select
 
     def accept_residue(self, residue):
-        return residue.get_resname() == self.res_name
+        is_ligand = residue.get_resname() == self.res_name
+        if is_ligand:
+            self.ligand_res_num.append(residue.get_id()[1])
+        return is_ligand
+
+class LigandSelectByResNum(Select):
+    def __init__(self, res_num):
+        self.res_num = int(res_num)
+    
+    def accept_residue(self, residue):
+        residue_number = residue.get_id()[1]
+        return residue_number == self.res_num
 
 def display_removed_residues(residue_filter):
     if residue_filter.res_w_missing_atoms:
@@ -245,18 +257,40 @@ def extract(data):
     residue_filter = ResidueSelect(protein_chain, include_metal, out_format, healthy_residue_dict)
 
     pdbio.save(protein_handle, residue_filter)
+    if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
+        display_removed_residues(residue_filter)
+    protein_handle.seek(0)
+
+    ligand_filter = LigandSelect(ligand_id, ligand_chain)
     if protein_chain == ligand_chain:
-        pdbio.save(ligand_handle, LigandSelect(ligand_id, ligand_chain))
+        pdbio.save(ligand_handle, ligand_filter)
     else:
         ligand_pdbio = PDBIO()
         ligand_pdbio.set_structure(structure_copy)
-        ligand_pdbio.save(ligand_handle, LigandSelect(ligand_id, ligand_chain))
-
-    if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
-        display_removed_residues(residue_filter)
-
-    protein_handle.seek(0)
+        ligand_pdbio.save(ligand_handle, ligand_filter)
     ligand_handle.seek(0)
+
+    total_ligand = len(ligand_filter.ligand_res_num)
+    if total_ligand > 1:
+        lowest_ligand_res_num = ligand_filter.ligand_res_num[0]
+        res_num_not_provided = "ligand_res_num" not in data.keys()
+        selected_res_num = data.get("ligand_res_num", lowest_ligand_res_num)
+
+        ligand_structure = parser.get_structure('ligand', ligand_handle)[0]
+        ligand_pdbio = PDBIO()
+        ligand_pdbio.set_structure(ligand_structure)
+        ligand_handle.seek(0)
+        ligand_handle.truncate()
+        ligand_filter_by_resnum = LigandSelectByResNum(selected_res_num)
+        ligand_pdbio.save(ligand_handle, ligand_filter_by_resnum)
+        ligand_handle.seek(0)
+
+        if res_num_not_provided:
+            ligand_res_num = ', '.join(str(i) for i in ligand_filter.ligand_res_num)
+            console.print(f"[bold deep_pink1]\n     Multiple ligand detected in chain {ligand_chain}. The default is to choose the ligand with the lowest residue number.[/bold deep_pink1]")
+            console.print("[bold deep_pink1]     To choose ligand with specific residue number use 'ligand_seq_num' option.[/bold deep_pink1]")
+            console.print(f"[bold deep_pink1]     The residue number of ligand detected in chain {ligand_chain} are: {ligand_res_num}.[/bold deep_pink1]")
+    
 
     extraction_data = {
         "protein": protein_handle.read(),

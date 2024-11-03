@@ -15,7 +15,7 @@ mandatory_opts = [
 ]
 
 optional_opts = [
-    "ligand_seq_num",
+    "ligand_res_num",
     "ligand_image",
     "image_size",
     "include_metal",
