@@ -43,12 +43,13 @@ def log_writer(config_data, extraction_data, ionization_records, pilah_version):
             for residue_name, residue_number in res_w_incorrect_bond_length_angle:
                 log_txt += f"\n    {residue_name}          {residue_number}"
         
-        if total_insertion > 0:
+        if any(list(total_insertion.values())):
             log_txt += "\n\n\n----- Renumbered Residues -----"
-            log_txt += f"\n\nTotal residue with insertion code = {total_insertion}"
-            log_txt += "\n\nThe mapping is formatted as follows:\nresidue_name residue_number insertion_code => residue_name new_residue_number\n"
+            for chain, total_num in total_insertion.items():
+                log_txt += f"\n\nTotal residue with insertion code in chain {chain} = {total_num}"
+            log_txt += "\n\nThe mapping is formatted as follows:\n chain_id residue_name residue_number insertion_code => residue_name new_residue_number\n"
             for old_id, new_resnum in renumber_residue_map.items():
-                log_txt += f"\n    {old_id[0]} {old_id[1]:4} {old_id[2]} => {old_id[0]} {new_resnum:4}"
+                log_txt += f"\n    {old_id[0]} {old_id[1]} {old_id[2]:4} {old_id[3]} => {old_id[1]} {new_resnum:4}"
 
         log_handle.write(log_txt)
     
@@ -59,12 +60,12 @@ def sort_records(records):
     sorted_records = dict()
 
     for residue_id, record in records.items():
-        _, resnum, _ = residue_id
-        temp_records[resnum] = [residue_id, record]
+        chain, resnum, _ = residue_id
+        temp_records[(chain, resnum)] = [residue_id, record]
     
-    temp_records_list = sorted(temp_records.items())
+    temp_records_list = sorted(temp_records.items(), key = lambda x: (x[0][0], x[0][1]))
 
-    for resnum, record_list in temp_records_list:
+    for _, record_list in temp_records_list:
         residue_id, record = record_list
         sorted_records[residue_id] = record
 

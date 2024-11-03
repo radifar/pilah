@@ -49,12 +49,12 @@ residue_smarts_dict = {
 }
 
 class PreResidueSelect(Select):
-    def __init__(self, chain="A", include_metal="no"):
+    def __init__(self, chain, include_metal="no"):
         self.chain_select = chain
         self.include_metal = include_metal
 
     def accept_chain(self, chain):
-        return chain.id == self.chain_select
+        return chain.id in self.chain_select
     
     def accept_residue(self, residue):
         if residue.id[0] == " ":
@@ -74,7 +74,7 @@ class ResidueSelect(Select):
         self.res_w_incorrect_bond_length_angle = []
 
     def accept_chain(self, chain):
-        return chain.id == self.chain_select
+        return chain.id in self.chain_select
 
     def accept_residue(self, residue):
         # remove residues with missing atom if the output format is pdbqt
@@ -84,20 +84,21 @@ class ResidueSelect(Select):
                 atom_name = atom.get_name()
                 residue_atom_names.add(atom_name)
             residue_name = residue.get_resname()
+            chain_id = residue.get_full_id()[2]
             residue_number = residue.get_id()[1]
+            residue_id = (chain_id, residue_number)
+            residue_full_id = (chain_id, residue_name, residue_number)
             ref_atom_names = atom_names_dict[residue_name]
             if residue_atom_names == ref_atom_names or residue_atom_names == ref_atom_names.union({"OXT"}):
                 if residue_name in ["GLY", "VAL", "ALA"]:
                     return True
-                elif residue_number in self.healthy_residue_dict[residue_name]:
+                elif residue_id in self.healthy_residue_dict[residue_name]:
                     return True
                 else:
-                    residue_id = (residue_name, residue_number)
-                    self.res_w_incorrect_bond_length_angle.append(residue_id)
+                    self.res_w_incorrect_bond_length_angle.append(residue_full_id)
                     return False
             else:
-                residue_id = (residue_name, residue_number)
-                self.res_w_missing_atoms.append(residue_id)
+                self.res_w_missing_atoms.append(residue_full_id)
                 return False
         elif residue.id[0] == " ":
             return True
@@ -132,14 +133,14 @@ class LigandSelectByResNum(Select):
 def display_removed_residues(residue_filter):
     if residue_filter.res_w_missing_atoms:
         console.print("[bold deep_pink2]\n     Some residues with missing atoms were removed:[/bold deep_pink2]")
-        console.print("[red3]     residue_name residue_number[/red3]")
-        for residue_name, residue_number in residue_filter.res_w_missing_atoms:
-            console.print(f"[deep_pink1]         {residue_name}          {residue_number}[/deep_pink1]")
+        console.print("[red3]     chain_id residue_name residue_number[/red3]")
+        for chain_id, residue_name, residue_number in residue_filter.res_w_missing_atoms:
+            console.print(f"[deep_pink1]         {chain_id}       {residue_name}          {residue_number}[/deep_pink1]")
     if residue_filter.res_w_incorrect_bond_length_angle:
         console.print("[bold deep_pink2]\n     Some residues with incorrect bond length and angle were removed:[/bold deep_pink2]")
         console.print("[red3]     residue_name residue_number[/red3]")
-        for residue_name, residue_number in residue_filter.res_w_incorrect_bond_length_angle:
-            console.print(f"[deep_pink1]         {residue_name}          {residue_number}[/deep_pink1]")
+        for chain_id, residue_name, residue_number in residue_filter.res_w_incorrect_bond_length_angle:
+            console.print(f"[deep_pink1]         {chain_id}       {residue_name}          {residue_number}[/deep_pink1]")
 
 def get_healthy_residues(pre_pdb_block):
     """
@@ -174,45 +175,49 @@ def get_healthy_residues(pre_pdb_block):
         for indices in match_indices:
             first_atom = mol.GetAtomWithIdx(indices[0])
             residue_info = first_atom.GetPDBResidueInfo()
+            chain_id = residue_info.GetChainId()
             residue_name = residue_info.GetResidueName()
             residue_number = residue_info.GetResidueNumber()
+            residue_id = (chain_id, residue_number)
             if residue_name == residue_key:
-                healthy_residue_dict[residue_name].append(residue_number)
+                healthy_residue_dict[residue_name].append(residue_id)
 
     return healthy_residue_dict
 
-def fix_insertion(structure, chain, ligand_id):
+def fix_insertion(structure, protein_chain, ligand_id):
     renumber_residue_map = dict()
-    total_insertion = 0
-    residue_list = []
-    for residue in structure[chain].get_list():
-        structure[chain].detach_child(residue.id)
-        hetero, residue_number, ins_code = residue.id
-        residue_name = residue.get_resname()
-        old_id = (residue_name, residue_number, ins_code)
+    total_insertion = dict()
+    for chain in protein_chain:
+        total_insertion[chain] = 0
+        residue_list = []
+        for residue in structure[chain].get_list():
+            structure[chain].detach_child(residue.id)
+            hetero, residue_number, ins_code = residue.id
+            residue_name = residue.get_resname()
+            old_id = (chain, residue_name, residue_number, ins_code)
 
-        is_metal = residue_name in metal_list
-        is_ligand = residue_name == ligand_id
-        if hetero == " " or is_metal:
-            if ins_code != " ":
-                total_insertion += 1
-            residue_number += total_insertion
-            residue.id = (" ", residue_number, " ")
-            residue_list.append(residue)
-            renumber_residue_map[old_id] = residue_number
-        elif is_ligand:
-            residue_number += total_insertion
-            residue.id = (hetero, residue_number, " ")
-            residue_list.append(residue)
-            renumber_residue_map[old_id] = residue_number
-    for residue in residue_list:
-        structure[chain].add(residue)
+            is_metal = residue_name in metal_list
+            is_ligand = residue_name == ligand_id
+            if hetero == " " or is_metal:
+                if ins_code != " ":
+                    total_insertion[chain] += 1
+                residue_number += total_insertion[chain]
+                residue.id = (" ", residue_number, " ")
+                residue_list.append(residue)
+                renumber_residue_map[old_id] = residue_number
+            elif is_ligand:
+                residue_number += total_insertion[chain]
+                residue.id = (hetero, residue_number, " ")
+                residue_list.append(residue)
+                renumber_residue_map[old_id] = residue_number
+        for residue in residue_list:
+            structure[chain].add(residue)
     
     return total_insertion, renumber_residue_map
 
 def extract(data):
     ligand_id = data["ligand_id"]
-    protein_chain = data["protein_chain"]
+    protein_chain = data["protein_chain"].split()
     ligand_chain = data["ligand_chain"]
     include_metal = data.get("include_metal", "no")
 
@@ -230,12 +235,10 @@ def extract(data):
     with warnings.catch_warnings(): # pragma: no cover
         warnings.simplefilter('ignore', BiopythonWarning)
         structure = parser.get_structure('structure', input_file)[0]
-    
-    if protein_chain != ligand_chain:
         structure_copy = deepcopy(structure)
 
     total_insertion, renumber_residue_map = fix_insertion(structure, protein_chain, ligand_id)
-    if total_insertion > 0:
+    if any(list(total_insertion.values())):
         console.print("[bold deep_pink1]\n     Insertion code detected, residue number on residues with insertion code[/bold deep_pink1]")
         console.print("[bold deep_pink1]     and the residues following those residues will be renumbered.[/bold deep_pink1]")
         console.print("[bold deep_pink1]     The mapping between original residue number and the new one will be logged into the Log file[/bold deep_pink1]")
@@ -257,17 +260,15 @@ def extract(data):
     residue_filter = ResidueSelect(protein_chain, include_metal, out_format, healthy_residue_dict)
 
     pdbio.save(protein_handle, residue_filter)
+    pdbio.save("test.pdb", residue_filter)
     if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
         display_removed_residues(residue_filter)
     protein_handle.seek(0)
 
     ligand_filter = LigandSelect(ligand_id, ligand_chain)
-    if protein_chain == ligand_chain:
-        pdbio.save(ligand_handle, ligand_filter)
-    else:
-        ligand_pdbio = PDBIO()
-        ligand_pdbio.set_structure(structure_copy)
-        ligand_pdbio.save(ligand_handle, ligand_filter)
+    ligand_pdbio = PDBIO()
+    ligand_pdbio.set_structure(structure_copy)
+    ligand_pdbio.save(ligand_handle, ligand_filter)
     ligand_handle.seek(0)
 
     total_ligand = len(ligand_filter.ligand_res_num)
