@@ -271,6 +271,7 @@ def extract(data):
     ligand_handle.seek(0)
 
     total_ligand = len(ligand_filter.ligand_res_num)
+    res_num_not_provided = False
     if total_ligand > 1:
         lowest_ligand_res_num = ligand_filter.ligand_res_num[0]
         res_num_not_provided = "ligand_res_num" not in data.keys()
@@ -300,6 +301,10 @@ def extract(data):
         "total_insertion": total_insertion,
         "renumber_residue_map": renumber_residue_map
         }
+    
+    if res_num_not_provided:
+        extraction_data["multiple_ligand"] = [ligand_chain, ligand_id, ligand_res_num]
+    
     pre_protein_handle.close()
     protein_handle.close()
     ligand_handle.close()
