@@ -34,14 +34,14 @@ def log_writer(config_data, extraction_data, ionization_records, pilah_version):
             log_txt += "\n\n----- Removed Residues -----"
         if res_w_missing_atoms:
             log_txt += "\n\nSome residues with missing atoms were removed:"
-            log_txt += "\nresidue_name residue_number"
-            for residue_name, residue_number in res_w_missing_atoms:
-                log_txt += f"\n    {residue_name}          {residue_number}"
+            log_txt += "\nchain_id residue_name residue_number"
+            for chain_id, residue_name, residue_number in res_w_missing_atoms:
+                log_txt += f"\n     {chain_id}       {residue_name}          {residue_number}"
         if res_w_incorrect_bond_length_angle:
             log_txt += "\n\nSome residues with incorrect bond length and angle were removed:"
-            log_txt += "\nresidue_name residue_number"
-            for residue_name, residue_number in res_w_incorrect_bond_length_angle:
-                log_txt += f"\n    {residue_name}          {residue_number}"
+            log_txt += "\nchain_id residue_name residue_number"
+            for chain_id, residue_name, residue_number in res_w_incorrect_bond_length_angle:
+                log_txt += f"\n     {chain_id}       {residue_name}          {residue_number}"
         
         if any(list(total_insertion.values())):
             log_txt += "\n\n\n----- Renumbered Residues -----"

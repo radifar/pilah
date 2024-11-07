@@ -15,6 +15,7 @@ mandatory_opts = [
 ]
 
 optional_opts = [
+    "altloc",
     "ligand_res_num",
     "ligand_image",
     "image_size",
