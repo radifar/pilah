@@ -49,6 +49,11 @@ residue_smarts_dict = {
 }
 
 class PreResidueSelect(Select):
+    """
+    After fixing insertion code (if exist), it will extract the protein only.
+    This is required to strip any post translation modification prior to scanning
+    the healthy residues.
+    """
     def __init__(self, chain, include_metal="no"):
         self.chain_select = chain
         self.include_metal = include_metal
@@ -65,11 +70,20 @@ class PreResidueSelect(Select):
             return False
 
 class ResidueSelect(Select):
-    def __init__(self, chain, include_metal="no", out_format="", healthy_residue_dict=dict()):
+    def __init__(self,
+                 chain,
+                 include_metal="no",
+                 out_format="",
+                 healthy_residue_dict=dict(),
+                 altloc_list=list()):
         self.chain_select = chain
         self.include_metal = include_metal
         self.out_format = out_format
         self.healthy_residue_dict = healthy_residue_dict
+        self.altloc = dict()
+        for altloc_id in altloc_list:
+            value, res_id = altloc_id.split(":")
+            self.altloc[res_id] = value
         self.res_w_missing_atoms = []
         self.res_w_incorrect_bond_length_angle = []
 
@@ -106,12 +120,35 @@ class ResidueSelect(Select):
             return residue.get_resname() in metal_list
         else:
             return False
+    
+    def accept_atom(self, atom):
+        atom_altloc = atom.get_altloc()
+        parent_residue_id = atom.get_parent().get_full_id()
+        chain_id = parent_residue_id[2]
+        res_number = parent_residue_id[3][1]
+        res_name = atom.get_parent().get_resname()
+        altloc_id = f"{chain_id}{res_number}{res_name}"
+        if not atom.is_disordered():
+            return True
+        elif altloc_id in self.altloc.keys():
+            altloc_match = atom_altloc == self.altloc[altloc_id]
+            atom.set_altloc(" ")
+            return altloc_match
+        elif atom_altloc == "A": # disordered but not specified in config, use default altloc
+            atom.set_altloc(" ")
+            return True
+        else:
+            return False
 
 class LigandSelect(Select):
-    def __init__(self, res_name, chain):
+    def __init__(self, res_name, chain, altloc_list=list()):
         self.res_name = res_name
         self.chain_select = chain
         self.ligand_res_num = []
+        self.altloc = dict()
+        for altloc_id in altloc_list:
+            value, res_id = altloc_id.split(":")
+            self.altloc[res_id] = value
 
     def accept_chain(self, chain):
         return chain.id == self.chain_select
@@ -121,6 +158,25 @@ class LigandSelect(Select):
         if is_ligand:
             self.ligand_res_num.append(residue.get_id()[1])
         return is_ligand
+    
+    def accept_atom(self, atom):
+        atom_altloc = atom.get_altloc()
+        parent_residue_id = atom.get_parent().get_full_id()
+        chain_id = parent_residue_id[2]
+        res_number = parent_residue_id[3][1]
+        res_name = atom.get_parent().get_resname()
+        altloc_id = f"{chain_id}{res_number}{res_name}"
+        if not atom.is_disordered():
+            return True
+        elif altloc_id in self.altloc.keys():
+            altloc_match = atom_altloc == self.altloc[altloc_id]
+            atom.set_altloc(" ")
+            return altloc_match
+        elif atom_altloc == "A": # disordered but not specified in config, use default altloc
+            atom.set_altloc(" ")
+            return True
+        else:
+            return False
 
 class LigandSelectByResNum(Select):
     def __init__(self, res_num):
@@ -138,7 +194,7 @@ def display_removed_residues(residue_filter):
             console.print(f"[deep_pink1]         {chain_id}       {residue_name}          {residue_number}[/deep_pink1]")
     if residue_filter.res_w_incorrect_bond_length_angle:
         console.print("[bold deep_pink2]\n     Some residues with incorrect bond length and angle were removed:[/bold deep_pink2]")
-        console.print("[red3]     residue_name residue_number[/red3]")
+        console.print("[red3]     chain_id residue_name residue_number[/red3]")
         for chain_id, residue_name, residue_number in residue_filter.res_w_incorrect_bond_length_angle:
             console.print(f"[deep_pink1]         {chain_id}       {residue_name}          {residue_number}[/deep_pink1]")
 
@@ -185,6 +241,13 @@ def get_healthy_residues(pre_pdb_block):
     return healthy_residue_dict
 
 def fix_insertion(structure, protein_chain, ligand_id):
+    """
+    This function will mutate the structure object by detaching every
+    residue inside chain(s), then renumbering and delete the insertion code,
+    finally it will reattach the residue to the structure object.
+    This is because directly changing the id of a residue might cause error
+    because the new id still belong to other residue.
+    """
     renumber_residue_map = dict()
     total_insertion = dict()
     for chain in protein_chain:
@@ -220,6 +283,8 @@ def extract(data):
     protein_chain = data["protein_chain"].split()
     ligand_chain = data["ligand_chain"]
     include_metal = data.get("include_metal", "no")
+    altloc = data.get("altloc", "")
+    altloc_list = altloc.split()
 
     input_file = data["input"]
     extension = input_file.split(".")[-1]
@@ -235,13 +300,15 @@ def extract(data):
     with warnings.catch_warnings(): # pragma: no cover
         warnings.simplefilter('ignore', BiopythonWarning)
         structure = parser.get_structure('structure', input_file)[0]
-        structure_copy = deepcopy(structure)
 
     total_insertion, renumber_residue_map = fix_insertion(structure, protein_chain, ligand_id)
     if any(list(total_insertion.values())):
         console.print("[bold deep_pink1]\n     Insertion code detected, residue number on residues with insertion code[/bold deep_pink1]")
         console.print("[bold deep_pink1]     and the residues following those residues will be renumbered.[/bold deep_pink1]")
         console.print("[bold deep_pink1]     The mapping between original residue number and the new one will be logged into the Log file[/bold deep_pink1]")
+
+    # create copy after residue renumbering
+    structure_copy = deepcopy(structure)
 
     pdbio = PDBIO()
     pdbio.set_structure(structure)
@@ -257,15 +324,18 @@ def extract(data):
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
     out_format = data["protein_out"].split(".")[-1]
-    residue_filter = ResidueSelect(protein_chain, include_metal, out_format, healthy_residue_dict)
+    residue_filter = ResidueSelect(protein_chain,
+                                   include_metal,
+                                   out_format,
+                                   healthy_residue_dict,
+                                   altloc_list)
 
     pdbio.save(protein_handle, residue_filter)
-    pdbio.save("test.pdb", residue_filter)
     if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
         display_removed_residues(residue_filter)
     protein_handle.seek(0)
 
-    ligand_filter = LigandSelect(ligand_id, ligand_chain)
+    ligand_filter = LigandSelect(ligand_id, ligand_chain, altloc_list)
     ligand_pdbio = PDBIO()
     ligand_pdbio.set_structure(structure_copy)
     ligand_pdbio.save(ligand_handle, ligand_filter)
