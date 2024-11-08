@@ -369,7 +369,7 @@ def extract(data):
         if res_num_not_provided:
             ligand_res_num = ', '.join(str(i) for i in ligand_filter.ligand_res_num)
             console.print(f"[bold deep_pink1]\n     Multiple ligand detected in chain {ligand_chain}. The default is to choose the ligand with the lowest residue number.[/bold deep_pink1]")
-            console.print("[bold deep_pink1]     To choose ligand with specific residue number use 'ligand_seq_num' option.[/bold deep_pink1]")
+            console.print("[bold deep_pink1]     To choose ligand with specific residue number use 'ligand_res_num' option.[/bold deep_pink1]")
             console.print(f"[bold deep_pink1]     The residue number of ligand detected in chain {ligand_chain} are: {ligand_res_num}.[/bold deep_pink1]")
     
 
