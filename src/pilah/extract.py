@@ -340,7 +340,6 @@ def extract(data):
                                    altloc_list)
 
     pdbio.save(protein_handle, residue_filter)
-    pdbio.save("test.pdb", residue_filter)
     if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
         display_removed_residues(residue_filter)
     protein_handle.seek(0)
