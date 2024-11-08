@@ -24,7 +24,7 @@ def run(config_file: str):
     
     ligand_pdb_block = extraction_data["ligand"]
     protein_pdb_block = extraction_data["protein"]
-    ligand_mol, ligand_with_Hs = process_ligand(config.data, ligand_pdb_block)
+    ligand_mol, ligand_with_Hs, ligand_processing_log = process_ligand(config.data, ligand_pdb_block)
     
     protein_protonation_results = process_protein(config.data, protein_pdb_block)
     protein_with_Hs, ionization_records = protein_protonation_results
@@ -38,7 +38,7 @@ def run(config_file: str):
     mol_writer(ligand_with_Hs, ligand_out)
     mol_writer(protein_with_Hs_renamed, protein_out, ionization_records, receptor=True)
 
-    log_writer(config.data, extraction_data, ionization_records, pilah_version)
+    log_writer(config.data, extraction_data, ionization_records, ligand_processing_log, pilah_version)
 
     if "ligand_image" in config.data.keys():
         ligand_image = config.data["ligand_image"]
