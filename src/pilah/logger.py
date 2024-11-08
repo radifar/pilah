@@ -7,6 +7,7 @@ def log_writer(config_data, extraction_data, ionization_records, ligand_processi
     renumber_residue_map = extraction_data["renumber_residue_map"]
     multiple_ligand = extraction_data.get("multiple_ligand", "")
     force_remove_hyd = ligand_processing_log.get("force_remove_hyd", "")
+    ligand_missing_atoms = ligand_processing_log.get("ligand_missing_atoms", "")
     
     now = datetime.now().strftime('%Y%m%d_%H%M%S')
     log_txt = f"PiLAH version: {pilah_version}\n\n"
@@ -25,6 +26,10 @@ def log_writer(config_data, extraction_data, ionization_records, ligand_processi
         if force_remove_hyd:
             log_txt += "\n\n----- Force Remove Hydrogens of Ligand -----\n"
             log_txt += force_remove_hyd
+        
+        if ligand_missing_atoms:
+            log_txt += "\n\n----- Ligand Atoms Are Missing -----\n"
+            log_txt += ligand_missing_atoms
         
         log_txt += "\n\n----- Ionization Records -----\n"
         log_txt += "\nChain   Residue Number   Residue Name     pKa  Charge\n"

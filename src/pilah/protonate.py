@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from rdkit.Chem import AllChem as Chem
 from rich.console import Console
 
@@ -36,8 +38,46 @@ def process_ligand(data: dict, ligand_block: str):
      Notice that it might cause incorrect stereochemistry."""
         console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
         template_mol = Chem.RemoveAllHs(template_mol)
-        corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
-        ligand_processing_log["force_remove_hyd"] = warning
+        try:
+            corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
+            ligand_processing_log["force_remove_hyd"] = warning
+        except ValueError:
+            warning = """\n     Ligand bond assignment still failed, some ligand atoms could be missing.
+     Trying to create and using a template that match the ligand extracted from PDB."""
+            console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
+            # Still error? Then probably ligand atoms were missing.
+            template_mol_slice = deepcopy(template_mol)
+            for bond in template_mol_slice.GetBonds():
+                bond.SetBondType(Chem.BondType.SINGLE)
+                bond.SetIsAromatic(False)
+
+            # Create template with matching atom composition
+            match = template_mol_slice.GetSubstructMatch(ligand_mol)
+            highlight_missing = []
+            editable_template = Chem.EditableMol(template_mol)
+            editable_template.BeginBatchEdit()
+            for atom in template_mol.GetAtoms():
+                atom_id = atom.GetIdx()
+                if atom_id not in match:
+                    highlight_missing.append(atom_id)
+                    editable_template.RemoveAtom(atom_id)
+            editable_template.CommitBatchEdit()
+            final_template = editable_template.GetMol()
+
+            corrected_ligand = Chem.AssignBondOrdersFromTemplate(final_template, ligand_mol)
+
+            # Draw template with highlight on missing atoms
+            from rdkit.Chem import Draw
+
+            ligand_id = data["ligand_id"]
+            filename = ligand_id + "_missing_atoms.png"
+            Draw.MolToFile(template_mol, filename, size=(640, 640), highlightAtoms=highlight_missing)
+
+            warning = f"\nImage file containing highlighted ligand missing atoms is written to {filename}"
+            console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
+
+            ligand_processing_log["ligand_missing_atoms"] = warning
+
     corrected_ligand_with_Hs = Chem.AddHs(corrected_ligand,
                                           addCoords=True,
                                           addResidueInfo=True)
