@@ -41,7 +41,7 @@ residue_smarts_dict = {
     "LYS": Chem.MolFromSmarts("[CH2X4][CH2X4][CH2X4][CH2X4][NX4+,NX3+0]"),
     "MET": Chem.MolFromSmarts("[CH2X4][CH2X4][SX2][CH3X4]"),
     "PHE": Chem.MolFromSmarts("[CH2X4][cX3]1[cX3H][cX3H][cX3H][cX3H][cX3H]1"),
-    "PRO": Chem.MolFromSmarts("N1[CX4H]([CH2][CH2][CH2]1)[CX3](=[OX1])[O,N]"),
+    "PRO": Chem.MolFromSmarts("N1[CX4H]([CH2][CH2][CH2]1)[CX3](=[OX1])"),
     "SER": Chem.MolFromSmarts("[CH2X4][OX2H]"),
     "THR": Chem.MolFromSmarts("[CHX4]([CH3X4])[OX2H]"),
     "TRP": Chem.MolFromSmarts("[CH2X4][cX3]1[cX3H][nX3H][cX3]2[cX3H][cX3H][cX3H][cX3H][cX3]12"),

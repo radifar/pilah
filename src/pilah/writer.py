@@ -124,7 +124,6 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
         if receptor:
             with NamedTemporaryFile() as temp_pdb_file:
                 pdb_block = Chem.MolToPDBBlock(mol)
-                Chem.MolToPDBFile(mol, "check.pdb")
                 pdb_block_renamed_residue = ""
                 for line in pdb_block.splitlines():
                     if ("ATOM" not in line) and ("HETATM" not in line):
