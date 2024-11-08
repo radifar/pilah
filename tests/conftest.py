@@ -26,6 +26,8 @@ def mock_config():
     config.load.return_value = "configuration"
     config.data = dict(
         input = "tests/data/6hsh.pdb",
+        protein_chain = "A",
+        ligand_chain = "A",
         ligand_id = "GOK",
         include_metal = "yes",
         protein_out = "protein_6hsh.pdb",
@@ -44,6 +46,8 @@ def mock_config_cif():
     config_cif.load.return_value = "configuration"
     config_cif.data = dict(
         input = "tests/data/6hsh.cif",
+        protein_chain = "A",
+        ligand_chain = "A",
         ligand_id = "GOK",
         protein_out = "protein_6hsh.pdb",
         ligand_out = "GOK.pdb",
@@ -58,6 +62,8 @@ def mock_config_unknown_format():
     config_cif.load.return_value = "configuration"
     config_cif.data = dict(
         input = "tests/data/6hsh.mol2",
+        protein_chain = "A",
+        ligand_chain = "A",
         ligand_id = "GOK",
         protein_out = "protein_6hsh.pdb",
         ligand_out = "GOK.pdb",
