@@ -1,4 +1,6 @@
 input = tests/data/6hsh.pdb
+protein_chain = A
+ligand_chain = A
 ligand_id = GOK
 include_metal = yes
 protein_out = protein_6hsh.pdb
