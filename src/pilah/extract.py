@@ -102,10 +102,19 @@ class ResidueSelect(Select):
             residue_number = residue.get_id()[1]
             residue_id = (chain_id, residue_number)
             residue_full_id = (chain_id, residue_name, residue_number)
-            ref_atom_names = atom_names_dict[residue_name]
-            if residue_atom_names == ref_atom_names or residue_atom_names == ref_atom_names.union({"OXT"}):
+            if residue_name not in metal_list:
+                ref_atom_names = atom_names_dict[residue_name]
+            else:
+                ref_atom_names = set()
+                ref_atom_names.add(residue_name)
+            if (residue_atom_names == ref_atom_names) or (residue_atom_names == ref_atom_names.union({"OXT"})):
                 if residue_name in ["GLY", "VAL", "ALA"]:
                     return True
+                elif residue_name in metal_list:
+                    if self.include_metal == "yes":
+                        return True
+                    else:
+                        return False
                 elif residue_id in self.healthy_residue_dict[residue_name]:
                     return True
                 else:
@@ -331,6 +340,7 @@ def extract(data):
                                    altloc_list)
 
     pdbio.save(protein_handle, residue_filter)
+    pdbio.save("test.pdb", residue_filter)
     if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
         display_removed_residues(residue_filter)
     protein_handle.seek(0)
