@@ -1,11 +1,12 @@
 from datetime import datetime
 
-def log_writer(config_data, extraction_data, ionization_records, pilah_version): # pragma: no cover
+def log_writer(config_data, extraction_data, ionization_records, ligand_processing_log, pilah_version): # pragma: no cover
     res_w_missing_atoms = extraction_data["res_w_missing_atoms"]
     res_w_incorrect_bond_length_angle = extraction_data["res_w_incorrect_bond_length_angle"]
     total_insertion = extraction_data["total_insertion"]
     renumber_residue_map = extraction_data["renumber_residue_map"]
     multiple_ligand = extraction_data.get("multiple_ligand", "")
+    force_remove_hyd = ligand_processing_log.get("force_remove_hyd", "")
     
     now = datetime.now().strftime('%Y%m%d_%H%M%S')
     log_txt = f"PiLAH version: {pilah_version}\n\n"
@@ -20,6 +21,10 @@ def log_writer(config_data, extraction_data, ionization_records, pilah_version):
             log_txt += "\n\n----- Multiple Ligand Detected -----"
             log_txt += f"\n\nThe residue number of ligand with id {ligand_id} in chain {ligand_chain}:\n{ligand_res_num}"
             log_txt += "\n\nBy default it will choose the ligand with the smallest residue number."
+
+        if force_remove_hyd:
+            log_txt += "\n\n----- Force Remove Hydrogens of Ligand -----\n"
+            log_txt += force_remove_hyd
         
         log_txt += "\n\n----- Ionization Records -----\n"
         log_txt += "\nChain   Residue Number   Residue Name     pKa  Charge\n"

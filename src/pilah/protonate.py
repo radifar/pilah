@@ -15,6 +15,7 @@ def process_ligand(data: dict, ligand_block: str):
     ligand_mol = Chem.MolFromPDBBlock(ligand_block)
     ligand_smiles = data["ligand_smiles"]
     pH = float(data.get("ph", 7.4))
+    ligand_processing_log = dict()
 
     dimorphite_args = {
         "smiles": ligand_smiles,
@@ -30,16 +31,18 @@ def process_ligand(data: dict, ligand_block: str):
         corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
     except ValueError:
         console = Console()
-        console.print("[bold deep_pink2]\n     Ligand bond assignment failed, trying to force remove[/bold deep_pink2]")
-        console.print("[bold deep_pink2]     hydrogens from the template before bond assignment.[/bold deep_pink2]")
-        console.print("[bold deep_pink2]     Notice that it might cause incorrect stereochemistry.[/bold deep_pink2]")
+        warning = """\n     Ligand bond assignment failed, trying to force remove
+     hydrogens from the template before bond assignment.
+     Notice that it might cause incorrect stereochemistry."""
+        console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
         template_mol = Chem.RemoveAllHs(template_mol)
         corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
+        ligand_processing_log["force_remove_hyd"] = warning
     corrected_ligand_with_Hs = Chem.AddHs(corrected_ligand,
                                           addCoords=True,
                                           addResidueInfo=True)
     
-    return (corrected_ligand, corrected_ligand_with_Hs)
+    return (corrected_ligand, corrected_ligand_with_Hs, ligand_processing_log)
 
 def get_atoms_from_pattern(mol, pattern):
     smarts = Chem.MolFromSmarts(pattern)
