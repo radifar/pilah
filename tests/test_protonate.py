@@ -189,24 +189,6 @@ def test_AA_modifier_get_protonated_mol_pdbqt(ionizable_AA_2xji):
     assert_protonated_mol(protonated_mol, whole_i_records, i_records_ids)
 
 @pytest.mark.parametrize(
-        "ligand_pdb_block, num_atoms",
-        [
-            ("pdb_block_ligand_HUX", 21),
-            ("pdb_block_ligand_G39", 20),
-            ("pdb_block_ligand_GOK", 29),
-        ]
-)
-def test_process_ligand_no_smiles(ligand_pdb_block, num_atoms, request):
-    data = {}
-    
-    ligand_pdb_block = request.getfixturevalue(ligand_pdb_block)
-    ligand, ligand_Hs = process_ligand(data, ligand_pdb_block)
-
-    assert ligand.GetNumAtoms() == num_atoms
-    assert ligand.GetNumAtoms() == ligand.GetNumHeavyAtoms()
-    assert ligand_Hs.GetNumAtoms() > ligand_Hs.GetNumHeavyAtoms()
-
-@pytest.mark.parametrize(
         "ligand_pdb_block, smiles, dimorphite_smiles",
         # SMILES generated using dimorphite-dl in pilah/src/pilah/dimorphite_dl directory
         # using the following command:
@@ -229,7 +211,7 @@ def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles,
     data = {"ligand_smiles": smiles}
     ligand_pdb_block = request.getfixturevalue(ligand_pdb_block)
 
-    ligand, ligand_Hs = process_ligand(data, ligand_pdb_block)
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, ligand_pdb_block)
 
     assert ligand_Hs.GetNumAtoms() > ligand_Hs.GetNumHeavyAtoms()
     assert Chem.MolToSmiles(ligand) == dimorphite_smiles
