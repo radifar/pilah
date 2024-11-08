@@ -1,18 +1,11 @@
-# mandatory
 input = tests/data/6hsh.pdb
 protein_chain = A
-ligand_chain = A
 ligand_id = GOK
+include_metal = yes
 protein_out = protein_6hsh.pdb
 ligand_out = GOK.pdb
-
-# optional
-include_metal = yes
-ligand_res_num = 2
-altloc = B:A63ILE B:A89LYS B:A145ASP
 ligand_image = GOK.png
-image_size = medium
+image_size = large
 ligand_smiles = Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO
 ph = 7.4
-ptreshold = 1.2
 
