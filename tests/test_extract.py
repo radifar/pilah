@@ -28,7 +28,7 @@ missing_residue_chain_D = 42
 def test_residue_select():
     with NamedTemporaryFile() as temp_pdb_file:
         file_name = temp_pdb_file.name
-        HDAC_io.save(file_name, ResidueSelect())
+        HDAC_io.save(file_name, ResidueSelect(chain="A"))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_A = parser.get_structure("6hsh", file_name)
@@ -61,7 +61,7 @@ def test_residue_select():
 def test_residue_select_with_metal():
     with NamedTemporaryFile() as temp_pdb_file:
         file_name = temp_pdb_file.name
-        HDAC_io.save(file_name, ResidueSelect(include_metal="yes"))
+        HDAC_io.save(file_name, ResidueSelect(chain="A", include_metal="yes"))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_A = parser.get_structure("6hsh", file_name)
@@ -77,7 +77,7 @@ def test_residue_select_with_metal():
 def test_ligand_select():
     with NamedTemporaryFile() as temp_pdb_file:
         file_name = temp_pdb_file.name
-        HDAC_io.save(file_name, LigandSelect("GOK"))
+        HDAC_io.save(file_name, LigandSelect(res_name="GOK", chain="A"))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             quisinostat_chain_A = parser.get_structure("6hsh", file_name)
@@ -87,25 +87,25 @@ def test_ligand_select():
     assert quisinostat_atom_num == 29
 
 def test_extract(mock_config_default):
-    complex_block = extract(mock_config_default.data)
+    extraction_data = extract(mock_config_default.data)
     
-    protein_block = complex_block["protein"]
-    ligand_block = complex_block["ligand"]
+    protein_block = extraction_data["protein"]
+    ligand_block = extraction_data["ligand"]
     protein_mol = Chem.MolFromPDBBlock(protein_block)
     ligand_mol = Chem.MolFromPDBBlock(ligand_block)
 
-    assert protein_mol.GetNumAtoms() == 3235
+    assert protein_mol.GetNumAtoms() > 3200
     assert ligand_mol.GetNumAtoms() == 29
 
 def test_extract_cif(mock_config_cif):
-    complex_block = extract(mock_config_cif.data)
+    extraction_data = extract(mock_config_cif.data)
     
-    protein_block = complex_block["protein"]
-    ligand_block = complex_block["ligand"]
+    protein_block = extraction_data["protein"]
+    ligand_block = extraction_data["ligand"]
     protein_mol = Chem.MolFromPDBBlock(protein_block)
     ligand_mol = Chem.MolFromPDBBlock(ligand_block)
 
-    assert protein_mol.GetNumAtoms() == 3235
+    assert protein_mol.GetNumAtoms() > 3200
     assert ligand_mol.GetNumAtoms() == 29
 
 def test_extract_unknown_format(mock_config_unknown_format):

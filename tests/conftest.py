@@ -12,6 +12,8 @@ def mock_config_default():
     config_default.load.return_value = "configuration"
     config_default.data = dict(
         input = "tests/data/6hsh.pdb",
+        protein_chain = "A",
+        ligand_chain = "A",
         ligand_id = "GOK",
         protein_out = "protein_6hsh.pdb",
         ligand_out = "GOK.pdb",
