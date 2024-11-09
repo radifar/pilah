@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 import pytest
 from openbabel import openbabel
 
+from pilah.extract import extract
 from pilah.protonate import process_protein, process_ligand
 from pilah.writer import (
     renumber_hydrogens,
@@ -19,9 +20,25 @@ from helpers import (
 
 
 @pytest.fixture
-def mol_1e66_protonated(pdb_block_protein_1e66):
-    empty_dict = {"protein_out": "protein.mol2"}
-    mol_1e66, ionization_records = process_protein(empty_dict, pdb_block_protein_1e66)
+def mol_1e66_protonated():
+    """
+    This one is special because of its many atom missing and
+    incorrect bond length and angle. Therefore the pdb block
+    must be generated from advanced filtering.
+    """
+    data = dict(
+        input = "tests/data/1e66.pdb",
+        protein_chain = "A",
+        ligand_chain = "A",
+        ligand_id = "HUX",
+        include_metal = "yes",
+        protein_out = "protein_6hsh.pdbqt",
+        ligand_out = "HUX.pdbqt",
+        ligand_image = "GOK.png"
+    )
+    extraction_data = extract(data)
+    pdb_block_protein_1e66 = extraction_data["protein"]
+    mol_1e66, ionization_records = process_protein(data, pdb_block_protein_1e66)
 
     return mol_1e66, ionization_records
 
@@ -111,6 +128,7 @@ def test_renumber_hydrogens(mol_protonated, request):
 @pytest.mark.parametrize(
         "mol_protonated",
         [
+            ("mol_1e66_protonated"),
             ("mol_5nzn_protonated"),
             ("mol_6hsh_protonated"),
         ]
