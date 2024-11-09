@@ -86,9 +86,7 @@ def assert_atom_names_in_residues(residue_atom_names_dict):
                     residue_flag.append(False)
             else:
                 residue_flag.append(False)
-        
-        if residue_name == "CYS":
-            print(residue_id, atom_names)
+
         assert True in residue_flag
 
 def assert_image_svg(filename):

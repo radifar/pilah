@@ -52,11 +52,13 @@ def rename_hydrogens(mol):
             if len(hydrogens) == 1:
                 # Treat hydrogen attached to C carboxyl whose neighbouring residue is missing
                 # as hydrogen attached to C alpha (HA)
+                # PDB ID 1e66 A 298 GLY
                 if name.strip() == "C":
                     if residue_name == "GLY":
                         h_name_1 = "HA2"
                     else:
                         h_name_1 = "HA"
+                # PDB ID 1e66 A 271 PRO
                 elif name.strip() == "N" and residue_name == "PRO":
                     h_name_1 = "HA"
                 else:
