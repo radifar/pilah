@@ -125,6 +125,16 @@ def pdb_block_ligand_GOK():
         return f.read()
 
 @pytest.fixture
+def pdb_block_ligand_B49():
+    with open("tests/data/ligand_B49_3g0e.pdb") as f:
+        return f.read()
+
+@pytest.fixture
+def pdb_block_ligand_UI3():
+    with open("tests/data/ligand_UI3_1sqt.pdb") as f:
+        return f.read()
+
+@pytest.fixture
 def cr_apo_mbs(pdb_block_1j3f):
     mol = Chem.MolFromPDBBlock(pdb_block_1j3f)
     mol_withH = Chem.AddHs(mol, addCoords=True, addResidueInfo=True)

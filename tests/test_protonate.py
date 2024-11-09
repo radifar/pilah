@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from rdkit import Chem
 import pytest
 
@@ -215,6 +217,29 @@ def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles,
 
     assert ligand_Hs.GetNumAtoms() > ligand_Hs.GetNumHeavyAtoms()
     assert Chem.MolToSmiles(ligand) == dimorphite_smiles
+
+def test_process_ligand_with_terminal_imine(pdb_block_ligand_UI3):
+    data = {"ligand_smiles": "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N"}
+    dimorphite_smiles = "[H]/[NH+]=C(\\N)c1ccc2ccc(OC)c(-c3cnn(S(C)(=O)=O)c3)c2c1"
+
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, pdb_block_ligand_UI3)
+    dimorphite_Hs = Chem.AddHs(Chem.MolFromSmiles(dimorphite_smiles))
+
+    assert Chem.MolToSmiles(ligand_Hs) == Chem.MolToSmiles(dimorphite_Hs)
+    assert len(ligand_processing_log["force_remove_hyd"]) > 10
+
+@patch("pilah.protonate.Draw")
+def test_process_ligand_with_missing_atoms(draw_object, pdb_block_ligand_B49):
+    data = {"ligand_smiles": "CCN(CC)CCNC(=O)c1c(c([nH]c1C)/C=C\\2/c3cc(ccc3NC2=O)F)C",
+            "ligand_id": "B49"}
+    dimorphite_smiles = "CC[NH+](CC)CCNC(=O)c1c(C)[nH]c(/C=C2\\C(=O)Nc3ccc(F)cc32)c1C"
+
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, pdb_block_ligand_B49)
+    dimorphite_mol = Chem.MolFromSmiles(dimorphite_smiles)
+
+    assert len(dimorphite_mol.GetSubstructMatch(ligand)) > 10
+    assert len(ligand_processing_log["ligand_missing_atoms"]) > 10
+    draw_object.MolToFile.assert_called_once()
 
 @pytest.mark.parametrize(
         "protein_pdb_block",
