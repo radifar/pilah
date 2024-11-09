@@ -62,15 +62,15 @@ def mol_6hsh_protonated_ph3(pdb_block_protein_6hsh):
 
 @pytest.fixture
 def mol_G39_protonated(pdb_block_ligand_G39):
-    empty_dict = {"protein_out": "protein.mol2"}
-    _, mol_G39 = process_ligand(empty_dict, pdb_block_ligand_G39)
+    empty_dict = {"protein_out": "protein.mol2", "ligand_smiles": "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O"}
+    _, mol_G39, _ = process_ligand(empty_dict, pdb_block_ligand_G39)
 
     return mol_G39
 
 @pytest.fixture
 def mol_GOK_protonated(pdb_block_ligand_GOK):
-    empty_dict = {"protein_out": "protein.mol2"}
-    _, mol_GOK = process_ligand(empty_dict, pdb_block_ligand_GOK)
+    empty_dict = {"protein_out": "protein.mol2", "ligand_smiles": "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO"}
+    _, mol_GOK, _ = process_ligand(empty_dict, pdb_block_ligand_GOK)
 
     return mol_GOK
 
