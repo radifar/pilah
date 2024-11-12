@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from rdkit.Chem import AllChem as Chem
+from rdkit.Chem import Draw
 from rich.console import Console
 
 from pilah.dimorphite_dl import dimorphite_dl
@@ -67,8 +68,6 @@ def process_ligand(data: dict, ligand_block: str):
             corrected_ligand = Chem.AssignBondOrdersFromTemplate(final_template, ligand_mol)
 
             # Draw template with highlight on missing atoms
-            from rdkit.Chem import Draw
-
             ligand_id = data["ligand_id"]
             filename = ligand_id + "_missing_atoms.png"
             Draw.MolToFile(template_mol, filename, size=(640, 640), highlightAtoms=highlight_missing)
