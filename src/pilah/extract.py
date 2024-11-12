@@ -53,6 +53,7 @@ class PreResidueSelect(Select):
     After fixing insertion code (if exist), it will extract the protein only.
     This is required to strip any post translation modification prior to scanning
     the healthy residues.
+    example: ASN 59 and ASN 416 N-glycosylation in 1e66
     """
     def __init__(self, chain, include_metal="no"):
         self.chain_select = chain
@@ -97,24 +98,16 @@ class ResidueSelect(Select):
             for atom in residue:
                 atom_name = atom.get_name()
                 residue_atom_names.add(atom_name)
-            residue_name = residue.get_resname()
+            residue_name = residue.get_resname().strip()
             chain_id = residue.get_full_id()[2]
             residue_number = residue.get_id()[1]
             residue_id = (chain_id, residue_number)
             residue_full_id = (chain_id, residue_name, residue_number)
             if residue_name not in metal_list:
                 ref_atom_names = atom_names_dict[residue_name]
-            else:
-                ref_atom_names = set()
-                ref_atom_names.add(residue_name)
             if (residue_atom_names == ref_atom_names) or (residue_atom_names == ref_atom_names.union({"OXT"})):
                 if residue_name in ["GLY", "VAL", "ALA"]:
                     return True
-                elif residue_name in metal_list:
-                    if self.include_metal == "yes":
-                        return True
-                    else:
-                        return False
                 elif residue_id in self.healthy_residue_dict[residue_name]:
                     return True
                 else:
@@ -211,7 +204,7 @@ def get_healthy_residues(pre_pdb_block):
     """
     This function only works on filtered PDB (using Biopython).
     Using this function directly on original PDB could give inaccurate result
-    as some residues may covalently linked with other residue (phosphate, heme, NAG)
+    as some residues may covalently linked with other residue (heme, NAG, FUC, MAN)
     """
     healthy_residue_dict = {
         "ARG": [],
@@ -259,6 +252,10 @@ def fix_insertion(structure, protein_chain, ligand_id):
     """
     renumber_residue_map = dict()
     total_insertion = dict()
+    # Create a dict that store whether the original residue has been seen or not
+    # Because in rare case the insertion residues located prior to original residue.
+    # see PDB 1ype
+    registered_original_residue = dict()
     for chain in protein_chain:
         total_insertion[chain] = 0
         residue_list = []
@@ -267,13 +264,23 @@ def fix_insertion(structure, protein_chain, ligand_id):
             hetero, residue_number, ins_code = residue.id
             residue_name = residue.get_resname()
             old_id = (chain, residue_name, residue_number, ins_code)
-
+            residue_group = ("chain", residue_number)
+            if residue_group not in registered_original_residue.keys():
+                if ins_code == " ":
+                    registered_original_residue[residue_group] = True
+                else:
+                    registered_original_residue[residue_group] = False
+            else:
+                if ins_code == " ":
+                    registered_original_residue[residue_group] = True
             is_metal = residue_name in metal_list
             is_ligand = residue_name == ligand_id
             if hetero == " " or is_metal:
                 if ins_code != " ":
                     total_insertion[chain] += 1
                 residue_number += total_insertion[chain]
+                if not registered_original_residue[residue_group]:
+                    residue_number -= 1
                 residue.id = (" ", residue_number, " ")
                 residue_list.append(residue)
                 renumber_residue_map[old_id] = residue_number

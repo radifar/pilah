@@ -43,6 +43,87 @@ def mock_config():
     return config
 
 @pytest.fixture
+def mock_config_multichain_protein():
+    config = Mock()
+    config.load.return_value = "configuration"
+    config.data = dict(
+        input = "tests/data/6hsh.pdb",
+        protein_chain = "A B",
+        ligand_chain = "A",
+        ligand_id = "GOK",
+        include_metal = "yes",
+        protein_out = "protein_6hsh.pdb",
+        ligand_out = "GOK.pdb",
+        ligand_image = "GOK.png",
+        image_size = "large",
+        ligand_smiles = "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO",
+        ph = 7.4
+    )
+
+    return config
+
+@pytest.fixture
+def mock_config_multiligand():
+    config = Mock()
+    config.load.return_value = "configuration"
+    config.data = dict(
+        input = "tests/data/3ccw.pdb",
+        protein_chain = "A",
+        ligand_chain = "B",
+        ligand_id = "4HI",
+        include_metal = "yes",
+        protein_out = "protein_3ccw.pdb",
+        ligand_out = "4HI.pdb",
+        ligand_image = "4HI.png",
+        image_size = "large",
+        ligand_smiles = "CC(C)c1c(nc(n1CC[C@H](C[C@H](CC(=O)O)O)O)c2ccc(cc2)F)C(=O)NCc3ccccc3",
+        ph = 7.4
+    )
+
+    return config
+
+@pytest.fixture
+def mock_config_multiligand_select_resnum():
+    config = Mock()
+    config.load.return_value = "configuration"
+    config.data = dict(
+        input = "tests/data/3ccw.pdb",
+        protein_chain = "A",
+        ligand_chain = "B",
+        ligand_id = "4HI",
+        ligand_res_num = "2",
+        include_metal = "yes",
+        protein_out = "protein_3ccw.pdb",
+        ligand_out = "4HI.pdb",
+        ligand_image = "4HI.png",
+        image_size = "large",
+        ligand_smiles = "CC(C)c1c(nc(n1CC[C@H](C[C@H](CC(=O)O)O)O)c2ccc(cc2)F)C(=O)NCc3ccccc3",
+        ph = 7.4
+    )
+
+    return config
+
+@pytest.fixture
+def mock_config_with_insertion():
+    config = Mock()
+    config.load.return_value = "configuration"
+    config.data = dict(
+        input = "tests/data/1sqt.pdb",
+        protein_chain = "A",
+        ligand_chain = "A",
+        ligand_id = "UI3",
+        include_metal = "yes",
+        protein_out = "protein_1sqt.pdb",
+        ligand_out = "UI3.pdb",
+        ligand_image = "UI3.png",
+        image_size = "large",
+        ligand_smiles = "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N",
+        ph = 7.4
+    )
+
+    return config
+
+@pytest.fixture
 def mock_config_cif():
     config_cif = Mock()
     config_cif.load.return_value = "configuration"
