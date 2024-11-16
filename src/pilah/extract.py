@@ -281,7 +281,7 @@ def fix_insertion(structure, protein_chain, ligand_id):
                 residue_number += total_insertion[chain]
                 if not registered_original_residue[residue_group]:
                     residue_number -= 1
-                residue.id = (" ", residue_number, " ")
+                residue.id = (hetero, residue_number, " ")
                 residue_list.append(residue)
                 renumber_residue_map[old_id] = residue_number
             elif is_ligand:
