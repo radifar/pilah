@@ -124,6 +124,26 @@ def mock_config_with_insertion():
     return config
 
 @pytest.fixture
+def mock_config_wrong_ligand_chain():
+    config = Mock()
+    config.load.return_value = "configuration"
+    config.data = dict(
+        input = "tests/data/1sqt.pdb",
+        protein_chain = "A",
+        ligand_chain = "B",
+        ligand_id = "UI3",
+        include_metal = "yes",
+        protein_out = "protein_1sqt.pdb",
+        ligand_out = "UI3.pdb",
+        ligand_image = "UI3.png",
+        image_size = "large",
+        ligand_smiles = "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N",
+        ph = 7.4
+    )
+
+    return config
+
+@pytest.fixture
 def mock_config_cif():
     config_cif = Mock()
     config_cif.load.return_value = "configuration"

@@ -241,6 +241,21 @@ def test_process_ligand_with_missing_atoms(draw_object, pdb_block_ligand_B49):
     assert len(ligand_processing_log["ligand_missing_atoms"]) > 10
     draw_object.MolToFile.assert_called_once()
 
+def test_process_ligand_invalid_smiles(pdb_block_ligand_HUX):
+    data = {"ligand_smiles": "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n)Cl)N)[C@@H](C2)C1"}
+
+    err = "\nError: unable to generate protonated structure using Dimorphite-DL, make sure ligand_smiles is correct"
+    with pytest.raises(SystemExit, match=err):
+        _, _, _ = process_ligand(data, pdb_block_ligand_HUX)
+
+def test_process_ligand_wrong_smiles(pdb_block_ligand_HUX):
+    data = {"ligand_smiles": "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N"}
+
+    err = "\nError: PiLAH unable to correct bond order, check your ligand_smiles. Or it could be bug in RDKit"
+    with pytest.raises(SystemExit, match=err):
+        _, _, _ = process_ligand(data, pdb_block_ligand_HUX)
+
+
 @pytest.mark.parametrize(
         "protein_pdb_block",
         [
