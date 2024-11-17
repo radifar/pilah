@@ -1,0 +1,11 @@
+input = 3ccw.pdb
+protein_out = protein_3ccw.pdb
+ligand_out = 4HI.pdb
+protein_chain = A
+ligand_chain = B
+ligand_id = 4HI
+ligand_smiles = CC(C)c1c(nc(n1CC[C@H](C[C@H](CC(=O)O)O)O)c2ccc(cc2)F)C(=O)NCc3ccccc3
+include_metal = yes
+ligand_image = 4HI.png
+image_size = large
+

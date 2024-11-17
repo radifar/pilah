@@ -1,0 +1,11 @@
+input = 3g0e.pdb
+protein_out = protein_3g0e.pdbqt
+ligand_out = B49.pdbqt
+protein_chain = A
+ligand_chain = A
+ligand_id = B49
+ligand_smiles = CCN(CC)CCNC(=O)c1c(c([nH]c1C)/C=C\\2/c3cc(ccc3NC2=O)F)C
+include_metal = yes
+ligand_image = B49.png
+image_size = large
+

@@ -1,0 +1,11 @@
+input = 1sqt.pdb
+protein_out = protein_1sqt.pdb
+ligand_out = UI3.pdb
+protein_chain = A
+ligand_chain = A
+ligand_id = UI3
+ligand_smiles = [H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\N
+include_metal = yes
+ligand_image = UI3.png
+image_size = large
+
