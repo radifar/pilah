@@ -1,0 +1,9 @@
+input = 6hsh.pdb
+ligand_id = GOK
+protein_chain = A
+ligand_chain = A
+include_metal = yes
+protein_out = protein_6hsh.mol2
+ligand_out = GOK.mol2
+ligand_smiles = Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO
+

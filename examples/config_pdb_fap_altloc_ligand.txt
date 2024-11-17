@@ -1,0 +1,12 @@
+input = 1h00.pdb
+protein_out = protein_h00.pdb
+ligand_out = FAP.pdb
+protein_chain = A
+ligand_chain = A
+ligand_id = FAP
+ligand_smiles = CN(C)C[C@@H](COc1ccc(cc1)Nc2cc(ncn2)Nc3c(cccc3F)F)O
+altloc = B:A63ILE B:A89LYS B:A145ASP
+include_metal = yes
+ligand_image = FAP.png
+image_size = large
+

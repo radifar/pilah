@@ -1,0 +1,11 @@
+input = 1e66.pdb
+protein_chain = A
+ligand_chain = A
+ligand_id = HUX
+include_metal = yes
+protein_out = protein_1e66.pdb
+ligand_out = HUX.pdb
+ligand_image = HUX.png
+image_size = large
+ligand_smiles = CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n3)Cl)N)[C@@H](C2)C1
+
