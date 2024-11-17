@@ -371,16 +371,19 @@ def extract(data):
             console.print("[bold deep_pink1]     To choose ligand with specific residue number use 'ligand_res_num' option.[/bold deep_pink1]")
             console.print(f"[bold deep_pink1]     The residue number of ligand detected in chain {ligand_chain} are: {ligand_res_num}.[/bold deep_pink1]")
     
+    ligand_pdb_block = ligand_handle.read()
+    if ligand_pdb_block == "END   \n":
+        sys.exit("\nError: Ligand empty make sure that ligand_chain and ligand_id are correct")
 
     extraction_data = {
         "protein": protein_handle.read(),
-        "ligand": ligand_handle.read(),
+        "ligand": ligand_pdb_block,
         "res_w_missing_atoms": residue_filter.res_w_missing_atoms,
         "res_w_incorrect_bond_length_angle": residue_filter.res_w_incorrect_bond_length_angle,
         "total_insertion": total_insertion,
         "renumber_residue_map": renumber_residue_map
         }
-    
+
     if res_num_not_provided:
         extraction_data["multiple_ligand"] = [ligand_chain, ligand_id, ligand_res_num]
     
