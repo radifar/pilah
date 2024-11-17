@@ -74,7 +74,7 @@ def test_preresidue_select():
         athrombine_filtered = parser.get_structure("filtered", pre_protein_handle)[0]
     
     pre_protein_handle.truncate()
-    pre_residue_filter = PreResidueSelect("A", "yes")
+    pre_residue_filter = PreResidueSelect(["A"], "yes")
     pdbio.save(pre_protein_handle, pre_residue_filter)
     pre_protein_handle.seek(0)
 
@@ -137,6 +137,19 @@ def hdac_io(hdac_structure):
 
     return HDAC_io
 
+@pytest.fixture
+def hdac_healthy_residues(hdac_io):
+    pre_protein_handle = io.StringIO()
+    pre_residue_filter = PreResidueSelect(["A", "B", "C", "D"])
+    hdac_io.save(pre_protein_handle, pre_residue_filter)
+    pre_protein_handle.seek(0)
+    pre_pdb_block = pre_protein_handle.read()
+
+    healthy_residue_dict = get_healthy_residues(pre_pdb_block)
+    print(healthy_residue_dict["HIS"])
+
+    return healthy_residue_dict
+
 def test_get_healthy_residues(ache_structure):
     pdbio = PDBIO()
     pdbio.set_structure(ache_structure)
@@ -174,7 +187,7 @@ def test_get_healthy_residues(ache_structure):
             for res_num in res_nums:
                 assert res_num not in residue_with_incorrect_bond_length_angle[res_name]
 
-def test_residue_select(hdac_io):
+def test_residue_select(hdac_io, hdac_healthy_residues):
     # Based on PDB REMARK data of 6HSH
     residue_num = 447
     missing_residue_chain_A = 43
@@ -184,25 +197,25 @@ def test_residue_select(hdac_io):
 
     with NamedTemporaryFile() as temp_pdb_file:
         file_name = temp_pdb_file.name
-        hdac_io.save(file_name, ResidueSelect(chain="A"))
+        hdac_io.save(file_name, ResidueSelect(chain=["A"], healthy_residue_dict=hdac_healthy_residues))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_A = parser.get_structure("6hsh", file_name)
         residue_num_A = len(list(protein_chain_A.get_residues()))
 
-        hdac_io.save(file_name, ResidueSelect(chain="B"))
+        hdac_io.save(file_name, ResidueSelect(chain=["B"], healthy_residue_dict=hdac_healthy_residues))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_B = parser.get_structure("6hsh", file_name)
         residue_num_B = len(list(protein_chain_B.get_residues()))
 
-        hdac_io.save(file_name, ResidueSelect(chain="C"))
+        hdac_io.save(file_name, ResidueSelect(chain=["C"], healthy_residue_dict=hdac_healthy_residues))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_C = parser.get_structure("6hsh", file_name)
         residue_num_C = len(list(protein_chain_C.get_residues()))
 
-        hdac_io.save(file_name, ResidueSelect(chain="D"))
+        hdac_io.save(file_name, ResidueSelect(chain=["D"], healthy_residue_dict=hdac_healthy_residues))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_D = parser.get_structure("6hsh", file_name)
@@ -214,7 +227,7 @@ def test_residue_select(hdac_io):
     assert residue_num_C == (residue_num - missing_residue_chain_C)
     assert residue_num_D == (residue_num - missing_residue_chain_D)
 
-def test_residue_select_output_pdbqt(ache_structure):
+def test_residue_select_broken_residues(ache_structure):
     pdbio = PDBIO()
     pdbio.set_structure(ache_structure)
 
@@ -226,9 +239,8 @@ def test_residue_select_output_pdbqt(ache_structure):
 
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
-    residue_filter = ResidueSelect("A",
+    residue_filter = ResidueSelect(["A"],
                                    "no",
-                                   "pdbqt",
                                    healthy_residue_dict)
     
     protein_handle = io.StringIO()
@@ -252,13 +264,16 @@ def test_residue_select_output_pdbqt(ache_structure):
 
     assert expected_residue_num_A == filtered_residue_num
 
-def test_residue_select_with_metal(hdac_io):
+def test_residue_select_with_metal(hdac_io, hdac_healthy_residues):
     residue_num = 447
     missing_residue_chain_A = 43
     
     with NamedTemporaryFile() as temp_pdb_file:
         file_name = temp_pdb_file.name
-        hdac_io.save(file_name, ResidueSelect(chain="A", include_metal="yes"))
+        residue_filter = ResidueSelect(chain=["A"],
+                                       include_metal="yes",
+                                       healthy_residue_dict=hdac_healthy_residues)
+        hdac_io.save(file_name, residue_filter)
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', BiopythonWarning)
             protein_chain_A = parser.get_structure("6hsh", file_name)
@@ -271,7 +286,7 @@ def test_residue_select_with_metal(hdac_io):
     assert residue_list_A[-2].resname == "K"
     assert residue_list_A[-1].resname == "K"
 
-def test_residue_select_output_pdbqt_with_metal(hdac_structure):
+def test_residue_select_broken_residues_with_metal(hdac_structure):
     pdbio = PDBIO()
     pdbio.set_structure(hdac_structure)
 
@@ -283,9 +298,8 @@ def test_residue_select_output_pdbqt_with_metal(hdac_structure):
 
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
-    residue_filter = ResidueSelect("A",
+    residue_filter = ResidueSelect(["A"],
                                    "yes",
-                                   "pdbqt",
                                    healthy_residue_dict)
     
     protein_handle = io.StringIO()
@@ -323,14 +337,12 @@ def test_residue_select_with_altloc(akt1_structure):
 
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
-    residue_filter_a = ResidueSelect("A",
+    residue_filter_a = ResidueSelect(["A"],
                                    "no",
-                                   "pdbqt",
                                    healthy_residue_dict,
                                    altloc_list_a)
-    residue_filter_b = ResidueSelect("A",
+    residue_filter_b = ResidueSelect(["A"],
                                    "no",
-                                   "pdbqt",
                                    healthy_residue_dict,
                                    altloc_list_b)
     

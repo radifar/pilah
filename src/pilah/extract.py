@@ -35,7 +35,7 @@ residue_smarts_dict = {
     "CYS": Chem.MolFromSmarts("[CH2X4][$([SX2H,SX1H0-]),$([#16X2H0][#16X2H0])]"),
     "GLN": Chem.MolFromSmarts("[CH2X4][CH2X4][CX3](=[OX1])[NX3H2]"),
     "GLU": Chem.MolFromSmarts("[CH2X4][CH2X4][CX3](=[OX1])[OH0-,OH]"),
-    "HIS": Chem.MolFromSmarts("[CH2X4][#6X3]1:[$([#7X3H+,#7X2H0+0]:[#6X3H]:[#7X3H]),$([#7X3H])]:[#6X3H]:[$([#7X3H+,#7X2H0+0]:[#6X3H]:[#7X3H]),$([#7X3H])]:[#6X3H]1"),
+    "HIS": Chem.MolFromSmarts("[n;R1]1[c;R1][n;R1][c;R1][c;R1]1C"), # use the one from ProLIF instead
     "ILE": Chem.MolFromSmarts("[CHX4]([CH3X4])[CH2X4][CH3X4]"),
     "LEU": Chem.MolFromSmarts("[CH2X4][CHX4]([CH3X4])[CH3X4]"),
     "LYS": Chem.MolFromSmarts("[CH2X4][CH2X4][CH2X4][CH2X4][NX4+,NX3+0]"),
@@ -74,12 +74,10 @@ class ResidueSelect(Select):
     def __init__(self,
                  chain,
                  include_metal="no",
-                 out_format="",
                  healthy_residue_dict=dict(),
                  altloc_list=list()):
         self.chain_select = chain
         self.include_metal = include_metal
-        self.out_format = out_format
         self.healthy_residue_dict = healthy_residue_dict
         self.altloc = dict()
         for altloc_id in altloc_list:
@@ -92,8 +90,7 @@ class ResidueSelect(Select):
         return chain.id in self.chain_select
 
     def accept_residue(self, residue):
-        # remove residues with missing atom if the output format is pdbqt
-        if (self.out_format == "pdbqt") and residue.id[0] == " ":
+        if residue.id[0] == " ":
             residue_atom_names = set()
             for atom in residue:
                 atom_name = atom.get_name()
@@ -103,8 +100,7 @@ class ResidueSelect(Select):
             residue_number = residue.get_id()[1]
             residue_id = (chain_id, residue_number)
             residue_full_id = (chain_id, residue_name, residue_number)
-            if residue_name not in metal_list:
-                ref_atom_names = atom_names_dict[residue_name]
+            ref_atom_names = atom_names_dict[residue_name]
             if (residue_atom_names == ref_atom_names) or (residue_atom_names == ref_atom_names.union({"OXT"})):
                 if residue_name in ["GLY", "VAL", "ALA"]:
                     return True
@@ -116,8 +112,6 @@ class ResidueSelect(Select):
             else:
                 self.res_w_missing_atoms.append(residue_full_id)
                 return False
-        elif residue.id[0] == " ":
-            return True
         elif self.include_metal == "yes":
             return residue.get_resname() in metal_list
         else:
@@ -339,10 +333,8 @@ def extract(data):
     pre_pdb_block = pre_protein_handle.read()
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
-    out_format = data["protein_out"].split(".")[-1]
     residue_filter = ResidueSelect(protein_chain,
                                    include_metal,
-                                   out_format,
                                    healthy_residue_dict,
                                    altloc_list)
 
