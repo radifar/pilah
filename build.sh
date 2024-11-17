@@ -10,3 +10,6 @@ pyinstaller src/pilah/pilah.py \
 --add-data "src/pilah/meeko/data/*.*:pilah/meeko/data" \
 --add-data "src/pilah/meeko/data/*.*:meeko/data" \
 --clean
+
+rm -rf dist/examples/
+cp -r examples/ dist/
