@@ -529,9 +529,12 @@ def test_extract_with_insertion_code(mock_config_with_insertion):
     assert renumber_residue_map[("A", "GLY", 23, "A")] == 24
     assert renumber_residue_map[("A", "SER", 25, " ")] == 26
 
+def test_extract_wrong_ligand_chain_or_id(mock_config_wrong_ligand_chain):
+    err = "\nError: Ligand empty make sure that ligand_chain and ligand_id are correct"
+    with pytest.raises(SystemExit, match=err):
+        extract(mock_config_wrong_ligand_chain.data)
+
 def test_extract_unknown_format(mock_config_unknown_format):
-    with pytest.raises(SystemExit) as excinfo:
+    err = 'Input file format mol2 is not recognized'
+    with pytest.raises(SystemExit, match=err):
         extract(mock_config_unknown_format.data)
-
-    assert excinfo.value.code == 'Input file format mol2 is not recognized'
-

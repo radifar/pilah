@@ -1,4 +1,5 @@
 from copy import deepcopy
+import sys
 
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
@@ -28,7 +29,10 @@ def process_ligand(data: dict, ligand_block: str):
     }
 
     dimorphite_results = dimorphite_dl.Protonate(dimorphite_args)
-    protonated_smiles = next(dimorphite_results).strip()
+    try:
+        protonated_smiles = next(dimorphite_results).strip()
+    except StopIteration:
+        sys.exit("\nError: unable to generate protonated structure using Dimorphite-DL, make sure ligand_smiles is correct")
     template_mol = Chem.MolFromSmiles(protonated_smiles)
     try:
         corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
@@ -65,7 +69,10 @@ def process_ligand(data: dict, ligand_block: str):
             editable_template.CommitBatchEdit()
             final_template = editable_template.GetMol()
 
-            corrected_ligand = Chem.AssignBondOrdersFromTemplate(final_template, ligand_mol)
+            try:
+                corrected_ligand = Chem.AssignBondOrdersFromTemplate(final_template, ligand_mol)
+            except ValueError:
+                sys.exit("\nError: PiLAH unable to correct bond order, check your ligand_smiles. Or it could be bug in RDKit")
 
             # Draw template with highlight on missing atoms
             ligand_id = data["ligand_id"]
