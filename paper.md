@@ -103,7 +103,7 @@ The authors also acknowledge the developers of the tools or libraries used as de
 1. Biopython [@cock2009biopython]: protein-ligand extraction, residue renumbering
 2. RDKit [@rdkit]: molecule conversion, bond assignment, and molecule modification (protonation and deprotonation)
 3. Openbabel [@o2011open]: molecule conversion to MOL2
-4. Meeko [meeko]: molecule conversion to PDBQT
+4. Meeko [@meeko]: molecule conversion to PDBQT
 5. pKAI [@reis2022fast]: pKa model for ionizable residues of protein
 6. Dimorphite-DL [@ropp2019dimorphite]: protonation of small molecule
 7. PyInstaller [@pyinstaller]: bundling as executable file
