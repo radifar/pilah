@@ -98,6 +98,8 @@ PiLAH is packaged as executable using PyInstaller. PiLAH executable size is rela
 
 The authors thank the European Research Council (ERC) for supporting Enade Perdana Istyastono under the InterTAU project. This project has received funding from the European Union’s Horizon 2020 Research and Innovation Programme under the Marie Skłodowska-Curie grant agreement No 873127.
 
+The authors declare the following competing financial interest(s): Enade Perdana Istyastono is a co-founder, and Muhammad Radifar is a project-based software developer of Molmod Jaya Sejahtera Ltd.(molmod.id), a research organization providing fee-for-service cloud protein simulators and molecular modeling for drug discovery services. The authors declare no other conflicts.
+
 The authors acknowledge Vojtěch Vařečka (Department of Chemistry, Masaryk University, Brno) for some technical recommendations.
 
 The authors also acknowledge the developers of the tools or libraries used as dependencies of PiLAH, especially the following dependencies:
