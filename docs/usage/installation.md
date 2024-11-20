@@ -1,6 +1,6 @@
 # Installation
 
-Download the binary release from the release page then extract it.
+Download the binary release from the [release page](https://github.com/radifar/pilah/releases) then extract it.
 In the extracted folder you will find an executable file named with `pilah` and
 an example folder which contain configuration and input files for the following
 usage guidelines.
