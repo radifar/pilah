@@ -8,51 +8,46 @@ from pilah.protonate import (
     get_atoms_from_pattern,
     process_protein,
     ionizable_AA_Smarts,
-    AA_modifier
+    AA_modifier,
 )
 
 from data import added_records, ionization_data, pkai_data
 from helpers import assert_protonated_mol
 
 config = dict(
-        input = "tests/data/6hsh.pdb",
-        ligand_id = "GOK",
-        include_metal = "yes",
-        protein_out = "protein_6hsh.pdb",
-        ligand_out = "GOK.pdb",
-        ligand_image = "GOK.png",
-        image_size = "large",
-        ligand_smiles = "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO",
-        ph = 7.4
-    )
+    input="tests/data/6hsh.pdb",
+    ligand_id="GOK",
+    include_metal="yes",
+    protein_out="protein_6hsh.pdb",
+    ligand_out="GOK.pdb",
+    ligand_image="GOK.png",
+    image_size="large",
+    ligand_smiles="Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO",
+    ph=7.4,
+)
+
 
 def test_get_atoms_from_pattern(ionizable_peptide):
     # only test ionizable moiety pattern
     # only ionizable amino acids
-    
+
     carboxylate_indices = get_atoms_from_pattern(
-        ionizable_peptide,
-        ionizable_AA_Smarts["carboxylate"]
+        ionizable_peptide, ionizable_AA_Smarts["carboxylate"]
     )
     imidazole_indices = get_atoms_from_pattern(
-        ionizable_peptide,
-        ionizable_AA_Smarts["imidazole"]
+        ionizable_peptide, ionizable_AA_Smarts["imidazole"]
     )
     thiol_indices = get_atoms_from_pattern(
-        ionizable_peptide,
-        ionizable_AA_Smarts["thiol"]
+        ionizable_peptide, ionizable_AA_Smarts["thiol"]
     )
     phenol_indices = get_atoms_from_pattern(
-        ionizable_peptide,
-        ionizable_AA_Smarts["phenol"]
+        ionizable_peptide, ionizable_AA_Smarts["phenol"]
     )
     guanidinium_indices = get_atoms_from_pattern(
-        ionizable_peptide,
-        ionizable_AA_Smarts["guanidinium"]
+        ionizable_peptide, ionizable_AA_Smarts["guanidinium"]
     )
     amonium_indices = get_atoms_from_pattern(
-        ionizable_peptide,
-        ionizable_AA_Smarts["amonium"]
+        ionizable_peptide, ionizable_AA_Smarts["amonium"]
     )
 
     assert len(carboxylate_indices) == 3
@@ -62,23 +57,24 @@ def test_get_atoms_from_pattern(ionizable_peptide):
     assert len(guanidinium_indices) == 2  # the pattern match the guanidinium twice
     assert len(amonium_indices) == 2
 
+
 @pytest.mark.parametrize(
-        "rdkit_mol, non_organic_num",
-        [
-            ("cr_apo_mbs", 1),    # 1 CR
-            ("zb_ADAR1", 3),      # 2 CD 1 NI
-            ("methanobactin", 6), # 6 CU
-            ("calmodulin", 5)     # 1 NA 1 MG 2 ZN 1 AS
-        ]
+    "rdkit_mol, non_organic_num",
+    [
+        ("cr_apo_mbs", 1),  # 1 CR
+        ("zb_ADAR1", 3),  # 2 CD 1 NI
+        ("methanobactin", 6),  # 6 CU
+        ("calmodulin", 5),  # 1 NA 1 MG 2 ZN 1 AS
+    ],
 )
 def test_get_atoms_from_pattern_non_organic(rdkit_mol, non_organic_num, request):
     rdkit_mol = request.getfixturevalue(rdkit_mol)
     non_organic_indices = get_atoms_from_pattern(
-        rdkit_mol,
-        ionizable_AA_Smarts["non-organic"]
+        rdkit_mol, ionizable_AA_Smarts["non-organic"]
     )
 
     assert len(non_organic_indices) == non_organic_num
+
 
 # Use fixture for AA_modifier object to keep the object
 # pristine for each test
@@ -86,26 +82,30 @@ def test_get_atoms_from_pattern_non_organic(rdkit_mol, non_organic_num, request)
 def ionizable_AA_1j3f(cr_apo_mbs):
     return AA_modifier(cr_apo_mbs, pkai_data.result_1j3f)
 
+
 @pytest.fixture
 def ionizable_AA_1xmk(zb_ADAR1):
     return AA_modifier(zb_ADAR1, pkai_data.result_1xmk)
+
 
 @pytest.fixture
 def ionizable_AA_2xji(methanobactin):
     return AA_modifier(methanobactin, pkai_data.result_2xji)
 
+
 @pytest.fixture
 def ionizable_AA_3ucy(calmodulin):
     return AA_modifier(calmodulin, pkai_data.result_3ucy)
 
+
 @pytest.mark.parametrize(
-        "ionizable_AA, pdb_id, i_records_length",
-        [
-            ("ionizable_AA_1j3f", "1j3f", 58),
-            ("ionizable_AA_1xmk", "1xmk", 31),
-            ("ionizable_AA_2xji", "2xji", 24),
-            ("ionizable_AA_3ucy", "3ucy", 26)
-        ]
+    "ionizable_AA, pdb_id, i_records_length",
+    [
+        ("ionizable_AA_1j3f", "1j3f", 58),
+        ("ionizable_AA_1xmk", "1xmk", 31),
+        ("ionizable_AA_2xji", "2xji", 24),
+        ("ionizable_AA_3ucy", "3ucy", 26),
+    ],
 )
 def test_AA_modifier_init(ionizable_AA, pdb_id, i_records_length, request):
     ionizable_AA = request.getfixturevalue(ionizable_AA)
@@ -121,24 +121,25 @@ def test_AA_modifier_init(ionizable_AA, pdb_id, i_records_length, request):
         assert record[0] == 14.0
         assert record[2] == "Positive"
 
+
 @pytest.mark.parametrize(
-        "pH, pT, pHpT",
-        [
-            (7.4, 1.0, "pH7.4"),
-            (3.0, 1.0, "pH3"),
-            (11.0, 1.0, "pH11"),
-            (3.0, 2.0, "pH3pT2"),
-            (11.0, 2.0, "pH11pT2")
-        ]
+    "pH, pT, pHpT",
+    [
+        (7.4, 1.0, "pH7.4"),
+        (3.0, 1.0, "pH3"),
+        (11.0, 1.0, "pH11"),
+        (3.0, 2.0, "pH3pT2"),
+        (11.0, 2.0, "pH11pT2"),
+    ],
 )
 @pytest.mark.parametrize(
-        "ionizable_AA, pdb_id",
-        [
-            ("ionizable_AA_1j3f", "1j3f"),
-            ("ionizable_AA_1xmk", "1xmk"),
-            ("ionizable_AA_2xji", "2xji"),
-            ("ionizable_AA_3ucy", "3ucy")
-        ]
+    "ionizable_AA, pdb_id",
+    [
+        ("ionizable_AA_1j3f", "1j3f"),
+        ("ionizable_AA_1xmk", "1xmk"),
+        ("ionizable_AA_2xji", "2xji"),
+        ("ionizable_AA_3ucy", "3ucy"),
+    ],
 )
 def test_AA_modifier_ionize(pH, pT, pHpT, ionizable_AA, pdb_id, request):
     ionizable_AA = request.getfixturevalue(ionizable_AA)
@@ -150,24 +151,28 @@ def test_AA_modifier_ionize(pH, pT, pHpT, ionizable_AA, pdb_id, request):
     for key, value in i_records_charge.items():
         assert value[pHpT] == records[key][2]
 
+
 @pytest.mark.parametrize(
-        "pH, pT",
-        [
-            (7.4, 1.0),
-            (3.0, 1.0),
-            (11.0, 1.0),
-            (3.0, 2.0),
-            (11.0, 2.0,)
-        ]
+    "pH, pT",
+    [
+        (7.4, 1.0),
+        (3.0, 1.0),
+        (11.0, 1.0),
+        (3.0, 2.0),
+        (
+            11.0,
+            2.0,
+        ),
+    ],
 )
 @pytest.mark.parametrize(
-        "ionizable_AA, pdb_id",
-        [
-            ("ionizable_AA_1j3f", "1j3f"),
-            ("ionizable_AA_1xmk", "1xmk"),
-            ("ionizable_AA_2xji", "2xji"),
-            ("ionizable_AA_3ucy", "3ucy")
-        ]
+    "ionizable_AA, pdb_id",
+    [
+        ("ionizable_AA_1j3f", "1j3f"),
+        ("ionizable_AA_1xmk", "1xmk"),
+        ("ionizable_AA_2xji", "2xji"),
+        ("ionizable_AA_3ucy", "3ucy"),
+    ],
 )
 def test_AA_modifier_get_protonated_mol(pH, pT, ionizable_AA, pdb_id, request):
     ionizable_AA = request.getfixturevalue(ionizable_AA)
@@ -177,8 +182,9 @@ def test_AA_modifier_get_protonated_mol(pH, pT, ionizable_AA, pdb_id, request):
 
     whole_i_records = ionizable_AA.ionization_records
     protonated_mol = ionizable_AA.get_protonated_mol()
-    
+
     assert_protonated_mol(protonated_mol, whole_i_records, i_records_ids)
+
 
 def test_AA_modifier_get_protonated_mol_pdbqt(ionizable_AA_2xji):
     i_records_ids = ionization_data.i_records_charge["2xji_pdbqt"].keys()
@@ -187,29 +193,38 @@ def test_AA_modifier_get_protonated_mol_pdbqt(ionizable_AA_2xji):
 
     whole_i_records = ionizable_AA_2xji.ionization_records
     protonated_mol = ionizable_AA_2xji.get_protonated_mol()
-    
+
     assert_protonated_mol(protonated_mol, whole_i_records, i_records_ids)
 
+
 @pytest.mark.parametrize(
-        "ligand_pdb_block, smiles, dimorphite_smiles",
-        # SMILES generated using dimorphite-dl in pilah/src/pilah/dimorphite_dl directory
-        # using the following command:
-        # python dimorphite_dl.py --smiles "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n3)Cl)N)[C@@H](C2)C1" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
-        # python dimorphite_dl.py --smiles "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
-        # python dimorphite_dl.py --smiles "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
-        [
-            ("pdb_block_ligand_HUX",
-             "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n3)Cl)N)[C@@H](C2)C1",
-             "CCC1=C[C@@H]2Cc3nc4cc(Cl)ccc4c(N)c3[C@H](C1)C2"),
-            ("pdb_block_ligand_G39",
-             "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O",
-             "CCC(CC)O[C@@H]1C=C(C(=O)[O-])C[C@H]([NH3+])[C@H]1NC(C)=O"),
-            ("pdb_block_ligand_GOK",
-             "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO",
-             "Cn1cc(C[NH2+]CC2CCN(c3ncc(C(=O)NO)cn3)CC2)c2ccccc21"),
-        ]
+    "ligand_pdb_block, smiles, dimorphite_smiles",
+    # SMILES generated using dimorphite-dl in pilah/src/pilah/dimorphite_dl directory
+    # using the following command:
+    # python dimorphite_dl.py --smiles "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n3)Cl)N)[C@@H](C2)C1" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
+    # python dimorphite_dl.py --smiles "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
+    # python dimorphite_dl.py --smiles "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO" --min_ph 7.4 --max_ph 7.4 --pka_precision 0
+    [
+        (
+            "pdb_block_ligand_HUX",
+            "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n3)Cl)N)[C@@H](C2)C1",
+            "CCC1=C[C@@H]2Cc3nc4cc(Cl)ccc4c(N)c3[C@H](C1)C2",
+        ),
+        (
+            "pdb_block_ligand_G39",
+            "CCC(CC)O[C@@H]1C=C(C[C@@H]([C@H]1NC(=O)C)N)C(=O)O",
+            "CCC(CC)O[C@@H]1C=C(C(=O)[O-])C[C@H]([NH3+])[C@H]1NC(C)=O",
+        ),
+        (
+            "pdb_block_ligand_GOK",
+            "Cn1cc(c2c1cccc2)CNCC3CCN(CC3)c4ncc(cn4)C(=O)NO",
+            "Cn1cc(C[NH2+]CC2CCN(c3ncc(C(=O)NO)cn3)CC2)c2ccccc21",
+        ),
+    ],
 )
-def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles, request):
+def test_process_ligand_with_smiles(
+    ligand_pdb_block, smiles, dimorphite_smiles, request
+):
     data = {"ligand_smiles": smiles}
     ligand_pdb_block = request.getfixturevalue(ligand_pdb_block)
 
@@ -218,28 +233,37 @@ def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles,
     assert ligand_Hs.GetNumAtoms() > ligand_Hs.GetNumHeavyAtoms()
     assert Chem.MolToSmiles(ligand) == dimorphite_smiles
 
+
 def test_process_ligand_with_terminal_imine(pdb_block_ligand_UI3):
     data = {"ligand_smiles": "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N"}
     dimorphite_smiles = "[H]/[NH+]=C(\\N)c1ccc2ccc(OC)c(-c3cnn(S(C)(=O)=O)c3)c2c1"
 
-    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, pdb_block_ligand_UI3)
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(
+        data, pdb_block_ligand_UI3
+    )
     dimorphite_Hs = Chem.AddHs(Chem.MolFromSmiles(dimorphite_smiles))
 
     assert Chem.MolToSmiles(ligand_Hs) == Chem.MolToSmiles(dimorphite_Hs)
     assert len(ligand_processing_log["force_remove_hyd"]) > 10
 
+
 @patch("pilah.protonate.Draw")
 def test_process_ligand_with_missing_atoms(draw_object, pdb_block_ligand_B49):
-    data = {"ligand_smiles": "CCN(CC)CCNC(=O)c1c(c([nH]c1C)/C=C\\2/c3cc(ccc3NC2=O)F)C",
-            "ligand_id": "B49"}
+    data = {
+        "ligand_smiles": "CCN(CC)CCNC(=O)c1c(c([nH]c1C)/C=C\\2/c3cc(ccc3NC2=O)F)C",
+        "ligand_id": "B49",
+    }
     dimorphite_smiles = "CC[NH+](CC)CCNC(=O)c1c(C)[nH]c(/C=C2\\C(=O)Nc3ccc(F)cc32)c1C"
 
-    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, pdb_block_ligand_B49)
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(
+        data, pdb_block_ligand_B49
+    )
     dimorphite_mol = Chem.MolFromSmiles(dimorphite_smiles)
 
     assert len(dimorphite_mol.GetSubstructMatch(ligand)) > 10
     assert len(ligand_processing_log["ligand_missing_atoms"]) > 10
     draw_object.MolToFile.assert_called_once()
+
 
 def test_process_ligand_invalid_smiles(pdb_block_ligand_HUX):
     data = {"ligand_smiles": "CCC1=C[C@@H]2Cc3c(c(c4ccc(cc4n)Cl)N)[C@@H](C2)C1"}
@@ -247,6 +271,7 @@ def test_process_ligand_invalid_smiles(pdb_block_ligand_HUX):
     err = "\nError: unable to generate protonated structure using Dimorphite-DL, make sure ligand_smiles is correct"
     with pytest.raises(SystemExit, match=err):
         _, _, _ = process_ligand(data, pdb_block_ligand_HUX)
+
 
 def test_process_ligand_wrong_smiles(pdb_block_ligand_HUX):
     data = {"ligand_smiles": "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N"}
@@ -257,12 +282,12 @@ def test_process_ligand_wrong_smiles(pdb_block_ligand_HUX):
 
 
 @pytest.mark.parametrize(
-        "protein_pdb_block",
-        [
-            ("pdb_block_protein_1e66"),
-            ("pdb_block_protein_5nzn"),
-            ("pdb_block_protein_6hsh"),
-        ]
+    "protein_pdb_block",
+    [
+        ("pdb_block_protein_1e66"),
+        ("pdb_block_protein_5nzn"),
+        ("pdb_block_protein_6hsh"),
+    ],
 )
 def test_process_protein(protein_pdb_block, request):
     data = {"protein_out": "protein.mol2"}

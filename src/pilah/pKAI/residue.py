@@ -36,7 +36,6 @@ RES_OHE = ["CTR", "CYS", "TYR", "GLU", "HIS", "ASP", "LYS", "NTR"]
 
 class Residue:
     def __init__(self, protein, chain, resname, resnumb):
-
         self.protein = protein
         self.chain = chain
         self.resname = resname
@@ -68,8 +67,7 @@ class Residue:
             yield atom
 
     def calc_cutoff_atoms(self, cutoff_dist: float):
-
-        cutoff_sq = cutoff_dist ** 2
+        cutoff_sq = cutoff_dist**2
 
         site_ref_atoms = []
         for atom in self.iter_atoms():
@@ -79,7 +77,6 @@ class Residue:
         for atom in self.protein.iter_atoms():
             min_dist = 99999
             for residue_atom in site_ref_atoms:
-
                 if atom in self.atoms.values():
                     continue
 
@@ -91,7 +88,7 @@ class Residue:
             if min_dist < cutoff_sq:
                 self.env_anames.append(atom.aname)
                 self.env_resnames.append(atom.residue.resname)
-                self.env_dists.append(min_dist ** 0.5)
+                self.env_dists.append(min_dist**0.5)
 
     def encode_atoms(self):
         for aname, resname in zip(self.env_anames, self.env_resnames):
@@ -130,7 +127,7 @@ class Residue:
             ohe_index = ATOM_OHE.index(letter)
             r = self.dists_sorted[li]
 
-            self.env_tensor[li][0][ohe_index] = 1 / (r ** 2)
+            self.env_tensor[li][0][ohe_index] = 1 / (r**2)
 
         ohe_index = RES_OHE.index(self.resname)
         self.ohe_resname[0][0][ohe_index] = 1

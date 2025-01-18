@@ -25,14 +25,16 @@ def process_ligand(data: dict, ligand_block: str):
         "smiles": ligand_smiles,
         "min_ph": pH,
         "max_ph": pH,
-        "pka_precision": 0
+        "pka_precision": 0,
     }
 
     dimorphite_results = dimorphite_dl.Protonate(dimorphite_args)
     try:
         protonated_smiles = next(dimorphite_results).strip()
     except StopIteration:
-        sys.exit("\nError: unable to generate protonated structure using Dimorphite-DL, make sure ligand_smiles is correct")
+        sys.exit(
+            "\nError: unable to generate protonated structure using Dimorphite-DL, make sure ligand_smiles is correct"
+        )
     template_mol = Chem.MolFromSmiles(protonated_smiles)
     try:
         corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
@@ -44,7 +46,9 @@ def process_ligand(data: dict, ligand_block: str):
         console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
         template_mol = Chem.RemoveAllHs(template_mol)
         try:
-            corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
+            corrected_ligand = Chem.AssignBondOrdersFromTemplate(
+                template_mol, ligand_mol
+            )
             ligand_processing_log["force_remove_hyd"] = warning
         except ValueError:
             warning = """\n     Ligand bond assignment still failed, some ligand atoms could be missing.
@@ -70,37 +74,46 @@ def process_ligand(data: dict, ligand_block: str):
             final_template = editable_template.GetMol()
 
             try:
-                corrected_ligand = Chem.AssignBondOrdersFromTemplate(final_template, ligand_mol)
+                corrected_ligand = Chem.AssignBondOrdersFromTemplate(
+                    final_template, ligand_mol
+                )
             except ValueError:
-                sys.exit("\nError: PiLAH unable to correct bond order, check your ligand_smiles. Or it could be bug in RDKit")
+                sys.exit(
+                    "\nError: PiLAH unable to correct bond order, check your ligand_smiles. Or it could be bug in RDKit"
+                )
 
             # Draw template with highlight on missing atoms
             ligand_id = data["ligand_id"]
             filename = ligand_id + "_missing_atoms.png"
-            Draw.MolToFile(template_mol, filename, size=(640, 640), highlightAtoms=highlight_missing)
+            Draw.MolToFile(
+                template_mol,
+                filename,
+                size=(640, 640),
+                highlightAtoms=highlight_missing,
+            )
 
             warning = f"\nImage file containing highlighted ligand missing atoms is written to {filename}"
             console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
 
             ligand_processing_log["ligand_missing_atoms"] = warning
 
-    corrected_ligand_with_Hs = Chem.AddHs(corrected_ligand,
-                                          addCoords=True,
-                                          addResidueInfo=True)
-    
+    corrected_ligand_with_Hs = Chem.AddHs(
+        corrected_ligand, addCoords=True, addResidueInfo=True
+    )
+
     return (corrected_ligand, corrected_ligand_with_Hs, ligand_processing_log)
+
 
 def get_atoms_from_pattern(mol, pattern):
     smarts = Chem.MolFromSmarts(pattern)
-    
+
     return mol.GetSubstructMatches(smarts)
+
 
 def process_protein(data: dict, protein_block: str):
     protein_mol = Chem.MolFromPDBBlock(protein_block)
-    protein_with_Hs = Chem.AddHs(protein_mol,
-                                 addCoords=True,
-                                 addResidueInfo=True)
-    
+    protein_with_Hs = Chem.AddHs(protein_mol, addCoords=True, addResidueInfo=True)
+
     protein_output_format = data["protein_out"].split(".")[-1]
     model = data.get("pkai_model", "pKAI")
     pkai_result = pKAI.pKAI(protein_block, model_name=model)
@@ -122,6 +135,7 @@ def process_protein(data: dict, protein_block: str):
 
     return ionized_mol_with_Hs, ionization_records
 
+
 ionizable_AA_Smarts = {
     "carboxylate": "C(=O)[OH]",
     "imidazole": "[n;R1]1[c;R1][n;R1][c;R1][c;R1]1",
@@ -132,25 +146,26 @@ ionizable_AA_Smarts = {
     "amonium": "[N;H2&+0][C;!$(C=*)]",
     # non-organic SMARTS pattern from the following discussion
     # https://sourceforge.net/p/rdkit/mailman/rdkit-discuss/thread/000001d83185$4e3aaff0$eab00fd0$@san.rr.com/
-    "non-organic": "[!#5;!#6;!#7;!#8;!#16;!#15;!F;!Cl;!Br;!I;!#1]"
+    "non-organic": "[!#5;!#6;!#7;!#8;!#16;!#15;!F;!Cl;!Br;!I;!#1]",
 }
 
-class AA_modifier():
+
+class AA_modifier:
     def __init__(self, mol, pkai_result) -> None:
         self.mol = mol
         self.positive = positive_one + positive_two + positive_three
         # pdbqt can not recognize deprotonated TYR, when output format is pdbqt
         # self.no_tyr_ionization will set to True
         self.no_tyr_ionization = False
-        
+
         self.ionization_records = {}
         for aa in pkai_result:
             chain_id, residue_number, residue_name, pKa = aa
             residue_id = (chain_id, residue_number, residue_name)
             self.ionization_records[residue_id] = [pKa, set(), "Neutral"]
-        
+
         self.residue_ids = self.ionization_records.keys()
-        
+
         for moiety, pattern in ionizable_AA_Smarts.items():
             filtered_atoms = get_atoms_from_pattern(mol, pattern)
             if moiety == "disulfide":
@@ -178,10 +193,18 @@ class AA_modifier():
                     if residue_id in self.residue_ids:
                         self.ionization_records[residue_id][1].update(atom_ids)
                     elif residue_name == "ARG":
-                        self.ionization_records[residue_id] = [14.0, set(atom_ids), "Positive"]
+                        self.ionization_records[residue_id] = [
+                            14.0,
+                            set(atom_ids),
+                            "Positive",
+                        ]
                     elif residue_name.strip() in self.positive:
-                        self.ionization_records[residue_id] = [14.0, set(atom_ids), "Positive"]
-            
+                        self.ionization_records[residue_id] = [
+                            14.0,
+                            set(atom_ids),
+                            "Positive",
+                        ]
+
             # terminal carboxylate always deprotonated to match Meeko template
             if moiety == "carboxylate":
                 atom_loop_break = False
@@ -192,18 +215,18 @@ class AA_modifier():
                         if atom_name.strip() == "OXT":
                             atom.SetNumExplicitHs(0)
                             atom.SetFormalCharge(-1)
-                            
+
                             atom_loop_break = True
                             break
                     if atom_loop_break:
                         break
-    
+
     def ionize_aa(self, pH, ptreshold) -> None:
         for residue_id, ionization_data in self.ionization_records.items():
             residue_name = residue_id[2]
             pKa, atom_idx, ionization_state = ionization_data
             atom_idx_list = sorted(atom_idx)
-            
+
             if (residue_name == "LYS") and (pKa - ptreshold >= pH):
                 ionization_data[2] = "Positive"
 
@@ -213,8 +236,8 @@ class AA_modifier():
                     if atom_name.strip() == "NZ":
                         atom.SetNumExplicitHs(3)
                         atom.SetFormalCharge(1)
-            
-            elif (residue_name == "ARG") and (pKa - ptreshold >=pH):
+
+            elif (residue_name == "ARG") and (pKa - ptreshold >= pH):
                 ionization_data[2] = "Positive"
                 for index in atom_idx_list:
                     atom = self.mol.GetAtomWithIdx(index)
@@ -222,8 +245,8 @@ class AA_modifier():
                     if atom_name.strip() == "NH2":
                         atom.SetNumExplicitHs(2)
                         atom.SetFormalCharge(1)
-            
-            elif (residue_name == "HIS") and (pKa - ptreshold >=pH):
+
+            elif (residue_name == "HIS") and (pKa - ptreshold >= pH):
                 ionization_data[2] = "Positive"
                 for index in atom_idx_list:
                     atom = self.mol.GetAtomWithIdx(index)
@@ -231,11 +254,11 @@ class AA_modifier():
                     if atom_name.strip() == "ND1":
                         atom.SetNumExplicitHs(1)
                         atom.SetFormalCharge(1)
-            
+
             elif residue_name == "CYS":
                 if ionization_data[2] == "SS_bridge":
                     continue
-                elif (pKa + ptreshold <= pH):
+                elif pKa + ptreshold <= pH:
                     ionization_data[2] = "Negative"
                     for index in atom_idx_list:
                         atom = self.mol.GetAtomWithIdx(index)
@@ -243,7 +266,7 @@ class AA_modifier():
                         if atom_name.strip() == "SG":
                             atom.SetNumExplicitHs(0)
                             atom.SetFormalCharge(-1)
-            
+
             elif (residue_name == "TYR") and (pKa + ptreshold <= pH):
                 if self.no_tyr_ionization:
                     continue
@@ -254,7 +277,7 @@ class AA_modifier():
                     if atom_name.strip() == "OH":
                         atom.SetNumExplicitHs(0)
                         atom.SetFormalCharge(-1)
-            
+
             elif (residue_name == "ASP") and (pKa + ptreshold <= pH):
                 ionization_data[2] = "Negative"
                 for index in atom_idx_list:
@@ -263,7 +286,7 @@ class AA_modifier():
                     if atom_name.strip() == "OD2":
                         atom.SetNumExplicitHs(0)
                         atom.SetFormalCharge(-1)
-            
+
             elif (residue_name == "GLU") and (pKa + ptreshold <= pH):
                 ionization_data[2] = "Negative"
                 for index in atom_idx_list:
@@ -272,7 +295,7 @@ class AA_modifier():
                     if atom_name.strip() == "OE2":
                         atom.SetNumExplicitHs(0)
                         atom.SetFormalCharge(-1)
-            
+
             elif residue_name.strip() in positive_one:
                 atom = self.mol.GetAtomWithIdx(atom_idx_list[0])
                 atom.SetNumExplicitHs(0)
@@ -288,12 +311,9 @@ class AA_modifier():
                 atom.SetNumExplicitHs(0)
                 atom.SetFormalCharge(3)
 
-    
     def get_protonated_mol(self):
-        protonated_mol = Chem.AddHs(self.mol,
-                                    explicitOnly=True,
-                                    addCoords=True,
-                                    addResidueInfo=True)
-        
-        return protonated_mol
+        protonated_mol = Chem.AddHs(
+            self.mol, explicitOnly=True, addCoords=True, addResidueInfo=True
+        )
 
+        return protonated_mol
