@@ -12,20 +12,23 @@ from pilah.writer import mol_writer, mol_drawer, renumber_hydrogens, rename_hydr
 console = Console()
 app = typer.Typer()
 
+
 @app.command(short_help="run PDB extraction, protonation and correction")
 def run(config_file: str):
     console.print(f"[bold deep_pink3]   Running {config_file}[/bold deep_pink3]")
     print(f"   on PiLAH version: {pilah_version}")
-    
+
     config = Config()
     config.load(config_file)
-    
+
     extraction_data = extract(config.data)
-    
+
     ligand_pdb_block = extraction_data["ligand"]
     protein_pdb_block = extraction_data["protein"]
-    ligand_mol, ligand_with_Hs, ligand_processing_log = process_ligand(config.data, ligand_pdb_block)
-    
+    ligand_mol, ligand_with_Hs, ligand_processing_log = process_ligand(
+        config.data, ligand_pdb_block
+    )
+
     protein_protonation_results = process_protein(config.data, protein_pdb_block)
     protein_with_Hs, ionization_records = protein_protonation_results
     protein_with_Hs_renumbered = renumber_hydrogens(protein_with_Hs)
@@ -38,7 +41,13 @@ def run(config_file: str):
     mol_writer(ligand_with_Hs, ligand_out)
     mol_writer(protein_with_Hs_renamed, protein_out, ionization_records, receptor=True)
 
-    log_writer(config.data, extraction_data, ionization_records, ligand_processing_log, pilah_version)
+    log_writer(
+        config.data,
+        extraction_data,
+        ionization_records,
+        ligand_processing_log,
+        pilah_version,
+    )
 
     if "ligand_image" in config.data.keys():
         ligand_image = config.data["ligand_image"]
@@ -57,5 +66,6 @@ def run(config_file: str):
 def callback():
     pass
 
-if __name__ == "__main__": # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     app()

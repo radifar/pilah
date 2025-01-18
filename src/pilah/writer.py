@@ -17,9 +17,8 @@ def check(success, error_msg): # pragma: no cover
         sys.exit(2)
 
 def renumber_hydrogens(mol):
-    bonds = [bond for bond in mol.GetBonds()]
     interresidual_bond = []
-    for index, bond in enumerate(bonds):
+    for index, bond in enumerate(mol.GetBonds()):
         atom_a_residue_number = bond.GetBeginAtom().GetPDBResidueInfo().GetResidueNumber()
         atom_b_residue_number = bond.GetEndAtom().GetPDBResidueInfo().GetResidueNumber()
         if atom_a_residue_number != atom_b_residue_number:
@@ -171,7 +170,7 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
                 binary_pdb_block = pdb_block_renamed_residue.encode("ascii")
                 temp_pdb_file.write(binary_pdb_block)
                 # Chem.MolToPDBFile(mol, temp_pdb_file.name)
-                receptor = PDBQTReceptor(temp_pdb_file.name, skip_typing=True)
+                receptor = PDBQTReceptor(pdb_block_renamed_residue, skip_typing=True)
                 temp_pdb_file.close()
 
             is_ok, err = receptor.assign_types_charges(residue_params=residue_params)
@@ -184,7 +183,7 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
                 with open(filename,'w') as w:
                     w.write(pdbqt_string["rigid"])
             else: # pragma: no cover 
-                print(error_msg)
+                print(err)
         else:
             preparator = MoleculePreparation()
             mol_setups = preparator.prepare(mol)
