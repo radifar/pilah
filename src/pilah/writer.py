@@ -3,27 +3,28 @@ import pathlib
 import sys
 from tempfile import NamedTemporaryFile
 
-from meeko import (MoleculePreparation,
-                   PDBQTReceptor,
-                   PDBQTWriterLegacy)
+from meeko import MoleculePreparation, PDBQTReceptor, PDBQTWriterLegacy
 from openbabel import openbabel as ob
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
 
 
-def check(success, error_msg): # pragma: no cover
+def check(success, error_msg):  # pragma: no cover
     if not success:
         print("Error: " + error_msg, file=sys.stderr)
         sys.exit(2)
 
+
 def renumber_hydrogens(mol):
     interresidual_bond = []
     for index, bond in enumerate(mol.GetBonds()):
-        atom_a_residue_number = bond.GetBeginAtom().GetPDBResidueInfo().GetResidueNumber()
+        atom_a_residue_number = (
+            bond.GetBeginAtom().GetPDBResidueInfo().GetResidueNumber()
+        )
         atom_b_residue_number = bond.GetEndAtom().GetPDBResidueInfo().GetResidueNumber()
         if atom_a_residue_number != atom_b_residue_number:
             interresidual_bond.append(index)
-    
+
     fragments = Chem.FragmentOnBonds(mol, interresidual_bond, addDummies=False)
     mol_fragments = Chem.GetMolFrags(fragments, asMols=True)
     pdb_block = ""
@@ -34,6 +35,7 @@ def renumber_hydrogens(mol):
     pdb_block += "END\n"
 
     return Chem.MolFromPDBBlock(pdb_block, removeHs=False)
+
 
 def rename_hydrogens(mol):
     for atom in mol.GetAtoms():
@@ -46,7 +48,8 @@ def rename_hydrogens(mol):
             suffix_len = len(suffix)
             neighbors = atom.GetNeighbors()
             for neighbor in neighbors:
-                if neighbor.GetSymbol() == "H": hydrogens.append(neighbor)
+                if neighbor.GetSymbol() == "H":
+                    hydrogens.append(neighbor)
 
             if len(hydrogens) == 1:
                 # Treat hydrogen attached to C carboxyl whose neighbouring residue is missing
@@ -101,6 +104,7 @@ def rename_hydrogens(mol):
                 hydrogens[2].GetMonomerInfo().SetName(h_name_3)
 
     return mol
+
 
 def mol_writer(mol, filename, ionization_records=None, receptor=False):
     mol_format = filename.split(".")[-1]
@@ -180,9 +184,9 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
             pdbqt_string, is_ok, err = receptor.write_pdbqt_string(flexres=all_flexres)
             check(is_ok, err)
             if is_ok:
-                with open(filename,'w') as w:
+                with open(filename, "w") as w:
                     w.write(pdbqt_string["rigid"])
-            else: # pragma: no cover 
+            else:  # pragma: no cover
                 print(err)
         else:
             preparator = MoleculePreparation()
@@ -190,12 +194,13 @@ def mol_writer(mol, filename, ionization_records=None, receptor=False):
             for setup in mol_setups:
                 pdbqt_string, is_ok, error_msg = PDBQTWriterLegacy.write_string(setup)
                 if is_ok:
-                    with open(filename,'w') as w:
+                    with open(filename, "w") as w:
                         w.write(pdbqt_string)
-                else: # pragma: no cover 
+                else:  # pragma: no cover
                     print(error_msg)
     else:
         print(f"Unrecognized file format: {mol_format}")
+
 
 def mol_drawer(mol, filename, size):
     image_format = filename.split(".")[-1]

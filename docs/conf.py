@@ -6,9 +6,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u"pilah"
-copyright = u"2024, Muhammad Radifar & Enade Perdana Istyastono"
-author = u"Muhammad Radifar"
+project = "pilah"
+copyright = "2024, Muhammad Radifar & Enade Perdana Istyastono"
+author = "Muhammad Radifar"
 
 # -- General configuration ---------------------------------------------------
 
@@ -38,4 +38,3 @@ html_theme_options = {
     "light_logo": "PiLAH_web.png",
     "dark_logo": "PiLAH_web.png",
 }
-

@@ -22,18 +22,18 @@ optional_opts = [
     "include_metal",
     "pkai_model",
     "ph",
-    "ptreshold"
+    "ptreshold",
 ]
 
 
 class Config(ConfigParser):
     def __init__(self):
         super().__init__()
-    
+
     def load(self, config_file):
         with open(config_file) as f:
             text = f.read()
-        
+
         self.read_string("[pxpc]\n" + text)
         self.data = dict(self["pxpc"])
 
@@ -42,9 +42,7 @@ class Config(ConfigParser):
             options = mandatory_opts + optional_opts
             if key not in options:
                 print(f"Warning: '{key}' option is not recognized")
-        
+
         for option in mandatory_opts:
             if option not in data_keys:
                 sys.exit(f"Missing mandatory option: {option}")
-
-        

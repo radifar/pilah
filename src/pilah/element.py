@@ -1,16 +1,68 @@
-metal_list = ["CA", "CO", "CU", "FE", "K", "MG", "MN", "NA", "NI",
-              "ZN", "AG", "AL", "AU", "BA", "BE", "CD", "CR", "CS",
-              "GA", "GD", "HG", "IR", "LI", "MO", "PB", "PD", "PR",
-              "PT", "RB", "RE", "RH", "RU", "SR", "TB", "TL", "U",
-              "V", "W", "Y", "YB"]
+metal_list = [
+    "CA",
+    "CO",
+    "CU",
+    "FE",
+    "K",
+    "MG",
+    "MN",
+    "NA",
+    "NI",
+    "ZN",
+    "AG",
+    "AL",
+    "AU",
+    "BA",
+    "BE",
+    "CD",
+    "CR",
+    "CS",
+    "GA",
+    "GD",
+    "HG",
+    "IR",
+    "LI",
+    "MO",
+    "PB",
+    "PD",
+    "PR",
+    "PT",
+    "RB",
+    "RE",
+    "RH",
+    "RU",
+    "SR",
+    "TB",
+    "TL",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "YB",
+]
 
 # These charges are based on the ion charge in RCSB PDB page for
 # each corresponding ion.
 
 positive_one = ["LI", "NA", "K", "RB", "CS", "AU", "TL"]
 
-positive_two = ["BE", "MG", "CA", "SR", "BA", "MN", "ZN", "CO", "NI",
-                "PD", "PT", "CU", "CD", "HG", "PB"]
+positive_two = [
+    "BE",
+    "MG",
+    "CA",
+    "SR",
+    "BA",
+    "MN",
+    "ZN",
+    "CO",
+    "NI",
+    "PD",
+    "PT",
+    "CU",
+    "CD",
+    "HG",
+    "PB",
+]
 
 positive_three = ["V", "CR", "FE", "RU", "SB", "SM", "Y"]
 

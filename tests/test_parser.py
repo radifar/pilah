@@ -19,6 +19,7 @@ def test_parser_warning(capfd):
 
     assert out == "Warning: 'bogus_option' option is not recognized\n"
 
+
 def test_parser_missing_mandatory():
     with pytest.raises(SystemExit) as excinfo:
         config_missing = Config()

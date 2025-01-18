@@ -30,6 +30,7 @@ from rdkit.Chem import AllChem
 
 RDLogger.DisableLog("rdApp.*")
 
+
 def print_header():
     """Prints out header information."""
     # Always let the user know a help file is available.
@@ -292,7 +293,7 @@ class UtilFuncs:
             [
                 "[H]-[N:1]-[N:2]#[N:3]",
                 "[N:1]=[N+1:2]=[N:3]-[H]",
-            ]  # To handle bad azide. R-N-N#N should
+            ],  # To handle bad azide. R-N-N#N should
             # be R-N=[N+]=N
         ]
 
@@ -897,7 +898,10 @@ class ProtSubstructFuncs:
                 try:
                     mol_copy = Chem.RemoveHs(mol_copy)
                 except:
-                    if "silent" in ProtSubstructFuncs.args and not ProtSubstructFuncs.args["silent"]:
+                    if (
+                        "silent" in ProtSubstructFuncs.args
+                        and not ProtSubstructFuncs.args["silent"]
+                    ):
                         UtilFuncs.eprint(
                             "WARNING: Skipping poorly formed SMILES string: "
                             + Chem.MolToSmiles(mol_copy)
@@ -1108,7 +1112,7 @@ class TestFuncs:
             "pka_precision": 0.5,
             "smiles": "",
             "label_states": True,
-            "silent": True
+            "silent": True,
         }
 
         for smi, protonated, deprotonated, category in smis:
@@ -1252,7 +1256,7 @@ class TestFuncs:
                             "min_ph": ph,
                             "max_ph": ph,
                             "pka_precision": 0,
-                            "silent": True
+                            "silent": True,
                         }
                     )
                 )

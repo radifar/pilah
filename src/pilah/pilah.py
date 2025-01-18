@@ -59,6 +59,7 @@ def run(config_file: str):
 
         mol_drawer(ligand_mol, ligand_image, image_size)
 
+
 # one command one callback, just a temporary helper command
 # delete this when there are multiple commands
 # https://typer.tiangolo.com/tutorial/commands/one-or-multiple/
