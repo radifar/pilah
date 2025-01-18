@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 pyinstaller_temp_dir = sys._MEIPASS
 ob_temp_dir = os.path.join(pyinstaller_temp_dir, "Openbabel")
 

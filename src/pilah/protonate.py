@@ -1,13 +1,13 @@
-from copy import deepcopy
 import sys
+from copy import deepcopy
 
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Draw
 from rich.console import Console
 
 from pilah.dimorphite_dl import dimorphite_dl
+from pilah.element import positive_one, positive_three, positive_two
 from pilah.pKAI import pKAI
-from pilah.element import positive_one, positive_two, positive_three
 
 
 def process_ligand(data: dict, ligand_block: str):
@@ -46,9 +46,7 @@ def process_ligand(data: dict, ligand_block: str):
         console.print(f"[bold deep_pink2]{warning}[/bold deep_pink2]")
         template_mol = Chem.RemoveAllHs(template_mol)
         try:
-            corrected_ligand = Chem.AssignBondOrdersFromTemplate(
-                template_mol, ligand_mol
-            )
+            corrected_ligand = Chem.AssignBondOrdersFromTemplate(template_mol, ligand_mol)
             ligand_processing_log["force_remove_hyd"] = warning
         except ValueError:
             warning = """\n     Ligand bond assignment still failed, some ligand atoms could be missing.
@@ -74,9 +72,7 @@ def process_ligand(data: dict, ligand_block: str):
             final_template = editable_template.GetMol()
 
             try:
-                corrected_ligand = Chem.AssignBondOrdersFromTemplate(
-                    final_template, ligand_mol
-                )
+                corrected_ligand = Chem.AssignBondOrdersFromTemplate(final_template, ligand_mol)
             except ValueError:
                 sys.exit(
                     "\nError: PiLAH unable to correct bond order, check your ligand_smiles. Or it could be bug in RDKit"
@@ -97,9 +93,7 @@ def process_ligand(data: dict, ligand_block: str):
 
             ligand_processing_log["ligand_missing_atoms"] = warning
 
-    corrected_ligand_with_Hs = Chem.AddHs(
-        corrected_ligand, addCoords=True, addResidueInfo=True
-    )
+    corrected_ligand_with_Hs = Chem.AddHs(corrected_ligand, addCoords=True, addResidueInfo=True)
 
     return (corrected_ligand, corrected_ligand_with_Hs, ligand_processing_log)
 
@@ -312,8 +306,6 @@ class AA_modifier:
                 atom.SetFormalCharge(3)
 
     def get_protonated_mol(self):
-        protonated_mol = Chem.AddHs(
-            self.mol, explicitOnly=True, addCoords=True, addResidueInfo=True
-        )
+        protonated_mol = Chem.AddHs(self.mol, explicitOnly=True, addCoords=True, addResidueInfo=True)
 
         return protonated_mol

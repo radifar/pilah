@@ -1,18 +1,17 @@
 from unittest.mock import patch
 
-from rdkit import Chem
 import pytest
-
-from pilah.protonate import (
-    process_ligand,
-    get_atoms_from_pattern,
-    process_protein,
-    ionizable_AA_Smarts,
-    AA_modifier,
-)
-
 from data import added_records, ionization_data, pkai_data
 from helpers import assert_protonated_mol
+from rdkit import Chem
+
+from pilah.protonate import (
+    AA_modifier,
+    get_atoms_from_pattern,
+    ionizable_AA_Smarts,
+    process_ligand,
+    process_protein,
+)
 
 config = dict(
     input="tests/data/6hsh.pdb",
@@ -31,24 +30,12 @@ def test_get_atoms_from_pattern(ionizable_peptide):
     # only test ionizable moiety pattern
     # only ionizable amino acids
 
-    carboxylate_indices = get_atoms_from_pattern(
-        ionizable_peptide, ionizable_AA_Smarts["carboxylate"]
-    )
-    imidazole_indices = get_atoms_from_pattern(
-        ionizable_peptide, ionizable_AA_Smarts["imidazole"]
-    )
-    thiol_indices = get_atoms_from_pattern(
-        ionizable_peptide, ionizable_AA_Smarts["thiol"]
-    )
-    phenol_indices = get_atoms_from_pattern(
-        ionizable_peptide, ionizable_AA_Smarts["phenol"]
-    )
-    guanidinium_indices = get_atoms_from_pattern(
-        ionizable_peptide, ionizable_AA_Smarts["guanidinium"]
-    )
-    amonium_indices = get_atoms_from_pattern(
-        ionizable_peptide, ionizable_AA_Smarts["amonium"]
-    )
+    carboxylate_indices = get_atoms_from_pattern(ionizable_peptide, ionizable_AA_Smarts["carboxylate"])
+    imidazole_indices = get_atoms_from_pattern(ionizable_peptide, ionizable_AA_Smarts["imidazole"])
+    thiol_indices = get_atoms_from_pattern(ionizable_peptide, ionizable_AA_Smarts["thiol"])
+    phenol_indices = get_atoms_from_pattern(ionizable_peptide, ionizable_AA_Smarts["phenol"])
+    guanidinium_indices = get_atoms_from_pattern(ionizable_peptide, ionizable_AA_Smarts["guanidinium"])
+    amonium_indices = get_atoms_from_pattern(ionizable_peptide, ionizable_AA_Smarts["amonium"])
 
     assert len(carboxylate_indices) == 3
     assert len(imidazole_indices) == 1
@@ -69,9 +56,7 @@ def test_get_atoms_from_pattern(ionizable_peptide):
 )
 def test_get_atoms_from_pattern_non_organic(rdkit_mol, non_organic_num, request):
     rdkit_mol = request.getfixturevalue(rdkit_mol)
-    non_organic_indices = get_atoms_from_pattern(
-        rdkit_mol, ionizable_AA_Smarts["non-organic"]
-    )
+    non_organic_indices = get_atoms_from_pattern(rdkit_mol, ionizable_AA_Smarts["non-organic"])
 
     assert len(non_organic_indices) == non_organic_num
 
@@ -222,9 +207,7 @@ def test_AA_modifier_get_protonated_mol_pdbqt(ionizable_AA_2xji):
         ),
     ],
 )
-def test_process_ligand_with_smiles(
-    ligand_pdb_block, smiles, dimorphite_smiles, request
-):
+def test_process_ligand_with_smiles(ligand_pdb_block, smiles, dimorphite_smiles, request):
     data = {"ligand_smiles": smiles}
     ligand_pdb_block = request.getfixturevalue(ligand_pdb_block)
 
@@ -238,9 +221,7 @@ def test_process_ligand_with_terminal_imine(pdb_block_ligand_UI3):
     data = {"ligand_smiles": "[H]/N=C(/c1ccc2ccc(c(c2c1)c3cnn(c3)S(=O)(=O)C)OC)\\N"}
     dimorphite_smiles = "[H]/[NH+]=C(\\N)c1ccc2ccc(OC)c(-c3cnn(S(C)(=O)=O)c3)c2c1"
 
-    ligand, ligand_Hs, ligand_processing_log = process_ligand(
-        data, pdb_block_ligand_UI3
-    )
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, pdb_block_ligand_UI3)
     dimorphite_Hs = Chem.AddHs(Chem.MolFromSmiles(dimorphite_smiles))
 
     assert Chem.MolToSmiles(ligand_Hs) == Chem.MolToSmiles(dimorphite_Hs)
@@ -255,9 +236,7 @@ def test_process_ligand_with_missing_atoms(draw_object, pdb_block_ligand_B49):
     }
     dimorphite_smiles = "CC[NH+](CC)CCNC(=O)c1c(C)[nH]c(/C=C2\\C(=O)Nc3ccc(F)cc32)c1C"
 
-    ligand, ligand_Hs, ligand_processing_log = process_ligand(
-        data, pdb_block_ligand_B49
-    )
+    ligand, ligand_Hs, ligand_processing_log = process_ligand(data, pdb_block_ligand_B49)
     dimorphite_mol = Chem.MolFromSmiles(dimorphite_smiles)
 
     assert len(dimorphite_mol.GetSubstructMatch(ligand)) > 10

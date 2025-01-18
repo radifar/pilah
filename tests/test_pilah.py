@@ -4,7 +4,6 @@ from typer.testing import CliRunner
 
 from pilah.pilah import app
 
-
 runner = CliRunner()
 
 complex_pdb_block = dict(ligand="ligand_pdb_block", protein="protein_pdb_block")

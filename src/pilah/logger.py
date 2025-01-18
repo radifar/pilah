@@ -9,9 +9,7 @@ def log_writer(
     pilah_version,
 ):  # pragma: no cover
     res_w_missing_atoms = extraction_data["res_w_missing_atoms"]
-    res_w_incorrect_bond_length_angle = extraction_data[
-        "res_w_incorrect_bond_length_angle"
-    ]
+    res_w_incorrect_bond_length_angle = extraction_data["res_w_incorrect_bond_length_angle"]
     total_insertion = extraction_data["total_insertion"]
     renumber_residue_map = extraction_data["renumber_residue_map"]
     multiple_ligand = extraction_data.get("multiple_ligand", "")
@@ -29,7 +27,9 @@ def log_writer(
         if multiple_ligand:
             ligand_chain, ligand_id, ligand_res_num = multiple_ligand
             log_txt += "\n\n----- Multiple Ligand Detected -----"
-            log_txt += f"\n\nThe residue number of ligand with id {ligand_id} in chain {ligand_chain}:\n{ligand_res_num}"
+            log_txt += (
+                f"\n\nThe residue number of ligand with id {ligand_id} in chain {ligand_chain}:\n{ligand_res_num}"
+            )
             log_txt += "\n\nBy default it will choose the ligand with the smallest residue number."
 
         if force_remove_hyd:
@@ -55,22 +55,16 @@ def log_writer(
             log_txt += "\n\nSome residues with missing atoms were removed:"
             log_txt += "\nchain_id residue_name residue_number"
             for chain_id, residue_name, residue_number in res_w_missing_atoms:
-                log_txt += (
-                    f"\n     {chain_id}       {residue_name}          {residue_number}"
-                )
+                log_txt += f"\n     {chain_id}       {residue_name}          {residue_number}"
         if res_w_incorrect_bond_length_angle:
-            log_txt += (
-                "\n\nSome residues with incorrect bond length and angle were removed:"
-            )
+            log_txt += "\n\nSome residues with incorrect bond length and angle were removed:"
             log_txt += "\nchain_id residue_name residue_number"
             for (
                 chain_id,
                 residue_name,
                 residue_number,
             ) in res_w_incorrect_bond_length_angle:
-                log_txt += (
-                    f"\n     {chain_id}       {residue_name}          {residue_number}"
-                )
+                log_txt += f"\n     {chain_id}       {residue_name}          {residue_number}"
 
         if any(list(total_insertion.values())):
             log_txt += "\n\n\n----- Renumbered Residues -----"

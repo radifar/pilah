@@ -18,9 +18,7 @@ def check(success, error_msg):  # pragma: no cover
 def renumber_hydrogens(mol):
     interresidual_bond = []
     for index, bond in enumerate(mol.GetBonds()):
-        atom_a_residue_number = (
-            bond.GetBeginAtom().GetPDBResidueInfo().GetResidueNumber()
-        )
+        atom_a_residue_number = bond.GetBeginAtom().GetPDBResidueInfo().GetResidueNumber()
         atom_b_residue_number = bond.GetEndAtom().GetPDBResidueInfo().GetResidueNumber()
         if atom_a_residue_number != atom_b_residue_number:
             interresidual_bond.append(index)

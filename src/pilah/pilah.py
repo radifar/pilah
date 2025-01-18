@@ -6,8 +6,7 @@ from pilah.extract import extract
 from pilah.logger import log_writer
 from pilah.parser import Config
 from pilah.protonate import process_ligand, process_protein
-from pilah.writer import mol_writer, mol_drawer, renumber_hydrogens, rename_hydrogens
-
+from pilah.writer import mol_drawer, mol_writer, rename_hydrogens, renumber_hydrogens
 
 console = Console()
 app = typer.Typer()
@@ -25,9 +24,7 @@ def run(config_file: str):
 
     ligand_pdb_block = extraction_data["ligand"]
     protein_pdb_block = extraction_data["protein"]
-    ligand_mol, ligand_with_Hs, ligand_processing_log = process_ligand(
-        config.data, ligand_pdb_block
-    )
+    ligand_mol, ligand_with_Hs, ligand_processing_log = process_ligand(config.data, ligand_pdb_block)
 
     protein_protonation_results = process_protein(config.data, protein_pdb_block)
     protein_with_Hs, ionization_records = protein_protonation_results

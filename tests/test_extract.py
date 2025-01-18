@@ -1,25 +1,23 @@
-from copy import deepcopy
 import io
-from tempfile import NamedTemporaryFile
 import warnings
+from copy import deepcopy
+from tempfile import NamedTemporaryFile
 
+import pytest
 from Bio import BiopythonWarning
 from Bio.PDB.PDBIO import PDBIO
 from Bio.PDB.PDBParser import PDBParser
-from Bio.PDB.vectors import Vector
-import pytest
 from rdkit import Chem
 
 from pilah.extract import (
-    PreResidueSelect,
-    ResidueSelect,
     LigandSelect,
     LigandSelectByResNum,
+    PreResidueSelect,
+    ResidueSelect,
     extract,
     fix_insertion,
     get_healthy_residues,
 )
-
 
 parser = PDBParser(PERMISSIVE=True)
 
@@ -32,9 +30,7 @@ def test_fix_insertion():
     chain = ["A"]
     ligand_id = "UI3"
 
-    total_insertion, renumber_residue_map = fix_insertion(
-        UPA_structure, chain, ligand_id
-    )
+    total_insertion, renumber_residue_map = fix_insertion(UPA_structure, chain, ligand_id)
 
     assert total_insertion == {"A": 1}
     assert renumber_residue_map[("A", "GLY", 23, "A")] == 24
@@ -51,9 +47,7 @@ def test_fix_insertion_multichain():
     chain = ["L", "H", "I"]
     ligand_id = "UIP"
 
-    total_insertion, renumber_residue_map = fix_insertion(
-        UPA_structure, chain, ligand_id
-    )
+    total_insertion, renumber_residue_map = fix_insertion(UPA_structure, chain, ligand_id)
     assert total_insertion == {"L": 13, "H": 23, "I": 0}
     assert renumber_residue_map[("L", "ALA", 1, "B")] == 1
     assert renumber_residue_map[("L", "ASP", 1, "A")] == 2
@@ -87,9 +81,7 @@ def test_preresidue_select():
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", BiopythonWarning)
-        athrombine_filtered_metal = parser.get_structure(
-            "filtered", pre_protein_handle
-        )[0]
+        athrombine_filtered_metal = parser.get_structure("filtered", pre_protein_handle)[0]
 
     residue_list = [
         "ALA",
@@ -345,10 +337,7 @@ def test_residue_select_broken_residues(ache_structure):
     residue_with_incorrect_bond_length_angle = 5
     residue_num_A = 543
     expected_residue_num_A = (
-        residue_num_A
-        - missing_residue_chain_A
-        - residue_with_missing_atom
-        - residue_with_incorrect_bond_length_angle
+        residue_num_A - missing_residue_chain_A - residue_with_missing_atom - residue_with_incorrect_bond_length_angle
     )
 
     filtered_residue_num = len(list(ache_ready["A"].get_residues()))
@@ -362,9 +351,7 @@ def test_residue_select_with_metal(hdac_io, hdac_healthy_residues):
 
     with NamedTemporaryFile() as temp_pdb_file:
         file_name = temp_pdb_file.name
-        residue_filter = ResidueSelect(
-            chain=["A"], include_metal="yes", healthy_residue_dict=hdac_healthy_residues
-        )
+        residue_filter = ResidueSelect(chain=["A"], include_metal="yes", healthy_residue_dict=hdac_healthy_residues)
         hdac_io.save(file_name, residue_filter)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", BiopythonWarning)
