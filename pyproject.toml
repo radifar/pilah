@@ -1,52 +1,55 @@
-[tool.poetry]
+[project]
+authors = [
+    {name = "Muhammad Radifar"},
+    {name = "Enade Perdana Istyastono"},
+]
+license = {text = "Apache License 2.0"}
+requires-python = "==3.11.11"
+dependencies = [
+    "numpy<2.0",
+    "rdkit<2024.3",
+    "openbabel-wheel<4.0.0,>=3.1.1",
+    "torch==2.5.1",
+    "biopython<2.0,>=1.84",
+    "rich<14.0.0,>=13.9.4",
+    "typer<1.0.0,>=0.15.1",
+    "meeko",
+    "gemmi<1.0.0,>=0.7.0",
+    "scipy<2.0.0,>=1.14.1",
+]
 name = "pilah"
-version = "0.0.0"
 description = "Protein Ligand Abstraction and Hydrogenization tool"
-authors = ["Muhammad Radifar", "Enade Perdana Istyastono"]
-license = "Apache License 2.0"
 readme = "README.md"
+dynamic = ["version"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-rdkit = "^2023.9.5"
-biopython = "^1.83"
-rich = "^13.7.1"
-typer = "^0.12.3"
-meeko = "^0.5.0"
+[tool.uv.sources]
+meeko = { git = "https://github.com/forlilab/Meeko", rev = "4c960993a7b4c0dc2ab3fd8c29e75b30b969bc8a" }
+torch = { index = "pytorch" }
 
-[tool.poetry.dev-dependencies]
+[[tool.uv.index]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
 
-[tool.poetry.group.dev.dependencies]
-pytest-cov = "^5.0.0"
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "semver"
-pattern  = "^(?P<base>\\d+\\.\\d+\\.\\d+)(-?((?P<stage>[a-zA-Z]+)\\.?(?P<revision>\\d+)?))?"
-
-[tool.poetry.scripts]
+[project.scripts]
 pilah = "pilah.pilah:app"
 pKAI = "pilah.pKAI.pKAI:main"
 dimorphite_dl = "pilah.dimorphite_dl.dimorphite_dl:main"
 
-[build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.1.6",
+    "pre-commit>=4.0.1",
+    "pytest-cov>=6.0.0",
+]
 
-[tool.black]
-line-length = 119
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+[build-system]
+requires = ["setuptools >= 64.0", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+default-groups = []
+dev-dependencies = [
+    "setuptools-scm>=8.1.0",
+]
+
+[tool.setuptools_scm]
