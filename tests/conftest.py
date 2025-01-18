@@ -3,7 +3,6 @@ from unittest.mock import Mock
 import pytest
 from rdkit import Chem
 
-
 pytest.register_assert_rewrite("helpers")
 
 

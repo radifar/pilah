@@ -1,8 +1,7 @@
 import re
 
-from PIL import Image
 from data import atom_name_per_residue
-
+from PIL import Image
 
 ionizable_atom_dict = {
     # LYS
@@ -38,9 +37,7 @@ def assert_protonated_mol(protonated_mol, whole_i_records, ids):
                 hyd_num = atom.GetTotalNumHs(includeNeighbors=True)
                 charge = atom.GetFormalCharge()
 
-                expected_hyd_num = ionizable_atom_dict[atom_name][ionization_state][
-                    "Hyd"
-                ]
+                expected_hyd_num = ionizable_atom_dict[atom_name][ionization_state]["Hyd"]
 
                 assert hyd_num == expected_hyd_num
                 if ionization_state == "Neutral":

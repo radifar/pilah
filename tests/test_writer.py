@@ -1,13 +1,12 @@
 from tempfile import NamedTemporaryFile
 
 import pytest
+from helpers import assert_atom_names_in_residues, assert_image_size, assert_image_svg
 from openbabel import openbabel
 
 from pilah.extract import extract
-from pilah.protonate import process_protein, process_ligand
-from pilah.writer import renumber_hydrogens, rename_hydrogens, mol_writer, mol_drawer
-
-from helpers import assert_atom_names_in_residues, assert_image_svg, assert_image_size
+from pilah.protonate import process_ligand, process_protein
+from pilah.writer import mol_drawer, mol_writer, rename_hydrogens, renumber_hydrogens
 
 
 @pytest.fixture

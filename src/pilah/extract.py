@@ -1,17 +1,16 @@
-from copy import deepcopy
 import io
 import sys
 import warnings
+from copy import deepcopy
 
 from Bio import BiopythonWarning
 from Bio.PDB import PDBIO, Select
-from Bio.PDB.PDBParser import PDBParser
 from Bio.PDB.MMCIFParser import FastMMCIFParser
+from Bio.PDB.PDBParser import PDBParser
 from rdkit import Chem
 from rich.console import Console
 
 from pilah.atom_names import atom_names_dict
-
 
 console = Console()
 
@@ -66,17 +65,13 @@ metal_list = [
 # side chain smarts patterns retrieved from:
 # https://www.daylight.com/dayhtml_tutorials/languages/smarts/smarts_examples.html
 residue_smarts_dict = {
-    "ARG": Chem.MolFromSmarts(
-        "[CH2X4][CH2X4][CH2X4][NHX3][CH0X3](=[NH2X3+,NHX2+0])[NH2X3]"
-    ),
+    "ARG": Chem.MolFromSmarts("[CH2X4][CH2X4][CH2X4][NHX3][CH0X3](=[NH2X3+,NHX2+0])[NH2X3]"),
     "ASN": Chem.MolFromSmarts("[CH2X4][CX3](=[OX1])[NX3H2]"),  # also hits GLN
     "ASP": Chem.MolFromSmarts("[CH2X4][CX3](=[OX1])[OH0-,OH]"),  # also hits GLU
     "CYS": Chem.MolFromSmarts("[CH2X4][$([SX2H,SX1H0-]),$([#16X2H0][#16X2H0])]"),
     "GLN": Chem.MolFromSmarts("[CH2X4][CH2X4][CX3](=[OX1])[NX3H2]"),
     "GLU": Chem.MolFromSmarts("[CH2X4][CH2X4][CX3](=[OX1])[OH0-,OH]"),
-    "HIS": Chem.MolFromSmarts(
-        "[n;R1]1[c;R1][n;R1][c;R1][c;R1]1C"
-    ),  # use the one from ProLIF instead
+    "HIS": Chem.MolFromSmarts("[n;R1]1[c;R1][n;R1][c;R1][c;R1]1C"),  # use the one from ProLIF instead
     "ILE": Chem.MolFromSmarts("[CHX4]([CH3X4])[CH2X4][CH3X4]"),
     "LEU": Chem.MolFromSmarts("[CH2X4][CHX4]([CH3X4])[CH3X4]"),
     "LYS": Chem.MolFromSmarts("[CH2X4][CH2X4][CH2X4][CH2X4][NX4+,NX3+0]"),
@@ -85,12 +80,8 @@ residue_smarts_dict = {
     "PRO": Chem.MolFromSmarts("N1[CX4H]([CH2][CH2][CH2]1)[CX3](=[OX1])"),
     "SER": Chem.MolFromSmarts("[CH2X4][OX2H]"),
     "THR": Chem.MolFromSmarts("[CHX4]([CH3X4])[OX2H]"),
-    "TRP": Chem.MolFromSmarts(
-        "[CH2X4][cX3]1[cX3H][nX3H][cX3]2[cX3H][cX3H][cX3H][cX3H][cX3]12"
-    ),
-    "TYR": Chem.MolFromSmarts(
-        "[CH2X4][cX3]1[cX3H][cX3H][cX3]([OHX2,OH0X1-])[cX3H][cX3H]1"
-    ),
+    "TRP": Chem.MolFromSmarts("[CH2X4][cX3]1[cX3H][nX3H][cX3]2[cX3H][cX3H][cX3H][cX3H][cX3]12"),
+    "TYR": Chem.MolFromSmarts("[CH2X4][cX3]1[cX3H][cX3H][cX3]([OHX2,OH0X1-])[cX3H][cX3H]1"),
 }
 
 
@@ -119,9 +110,7 @@ class PreResidueSelect(Select):
 
 
 class ResidueSelect(Select):
-    def __init__(
-        self, chain, include_metal="no", healthy_residue_dict=dict(), altloc_list=list()
-    ):
+    def __init__(self, chain, include_metal="no", healthy_residue_dict=dict(), altloc_list=list()):
         self.chain_select = chain
         self.include_metal = include_metal
         self.healthy_residue_dict = healthy_residue_dict
@@ -147,9 +136,7 @@ class ResidueSelect(Select):
             residue_id = (chain_id, residue_number)
             residue_full_id = (chain_id, residue_name, residue_number)
             ref_atom_names = atom_names_dict[residue_name]
-            if (residue_atom_names == ref_atom_names) or (
-                residue_atom_names == ref_atom_names.union({"OXT"})
-            ):
+            if (residue_atom_names == ref_atom_names) or (residue_atom_names == ref_atom_names.union({"OXT"})):
                 if residue_name in ["GLY", "VAL", "ALA"]:
                     return True
                 elif residue_id in self.healthy_residue_dict[residue_name]:
@@ -178,9 +165,7 @@ class ResidueSelect(Select):
             altloc_match = atom_altloc == self.altloc[altloc_id]
             atom.set_altloc(" ")
             return altloc_match
-        elif (
-            atom_altloc == "A"
-        ):  # disordered but not specified in config, use default altloc
+        elif atom_altloc == "A":  # disordered but not specified in config, use default altloc
             atom.set_altloc(" ")
             return True
         else:
@@ -219,9 +204,7 @@ class LigandSelect(Select):
             altloc_match = atom_altloc == self.altloc[altloc_id]
             atom.set_altloc(" ")
             return altloc_match
-        elif (
-            atom_altloc == "A"
-        ):  # disordered but not specified in config, use default altloc
+        elif atom_altloc == "A":  # disordered but not specified in config, use default altloc
             atom.set_altloc(" ")
             return True
         else:
@@ -239,9 +222,7 @@ class LigandSelectByResNum(Select):
 
 def display_removed_residues(residue_filter):
     if residue_filter.res_w_missing_atoms:
-        console.print(
-            "[bold deep_pink2]\n     Some residues with missing atoms were removed:[/bold deep_pink2]"
-        )
+        console.print("[bold deep_pink2]\n     Some residues with missing atoms were removed:[/bold deep_pink2]")
         console.print("[red3]     chain_id residue_name residue_number[/red3]")
         for (
             chain_id,
@@ -385,9 +366,7 @@ def extract(data):
         warnings.simplefilter("ignore", BiopythonWarning)
         structure = parser.get_structure("structure", input_file)[0]
 
-    total_insertion, renumber_residue_map = fix_insertion(
-        structure, protein_chain, ligand_id
-    )
+    total_insertion, renumber_residue_map = fix_insertion(structure, protein_chain, ligand_id)
     if any(list(total_insertion.values())):
         console.print(
             "[bold deep_pink1]\n     Insertion code detected, residue number on residues with insertion code[/bold deep_pink1]"
@@ -415,15 +394,10 @@ def extract(data):
     pre_pdb_block = pre_protein_handle.read()
     healthy_residue_dict = get_healthy_residues(pre_pdb_block)
 
-    residue_filter = ResidueSelect(
-        protein_chain, include_metal, healthy_residue_dict, altloc_list
-    )
+    residue_filter = ResidueSelect(protein_chain, include_metal, healthy_residue_dict, altloc_list)
 
     pdbio.save(protein_handle, residue_filter)
-    if (
-        residue_filter.res_w_missing_atoms
-        or residue_filter.res_w_incorrect_bond_length_angle
-    ):
+    if residue_filter.res_w_missing_atoms or residue_filter.res_w_incorrect_bond_length_angle:
         display_removed_residues(residue_filter)
     protein_handle.seek(0)
 
@@ -463,9 +437,7 @@ def extract(data):
 
     ligand_pdb_block = ligand_handle.read()
     if ligand_pdb_block == "END   \n":
-        sys.exit(
-            "\nError: Ligand empty make sure that ligand_chain and ligand_id are correct"
-        )
+        sys.exit("\nError: Ligand empty make sure that ligand_chain and ligand_id are correct")
 
     extraction_data = {
         "protein": protein_handle.read(),

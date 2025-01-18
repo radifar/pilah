@@ -1,8 +1,7 @@
-from configparser import ConfigParser
 import sys
+from configparser import ConfigParser
 
 from rich import print
-
 
 mandatory_opts = [
     "input",
